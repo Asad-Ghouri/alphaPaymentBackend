@@ -112,80 +112,11 @@ Routers.get(`/PaymentLinkGenerator/gett/:id/:amd`, async (request, response) => 
 });
 
 
-async function withdrawFunds(idss,address,amount,privateKeys) {
+async function withdrawFunds(idss,uniqueId,address,amount,privateKeys) {
   const  id = idss;
    
   console.log("withdrawFunds ",address,amount,privateKeys);
      console.log("withdrawFunds");
-
-    //  const quicknodeUrl = "https://alpha-quaint-night.bsc-testnet.discover.quiknode.pro/3bae5ff989475ed8f9507d97c304b336e837119e/";
-    //  const web3 = new Web3(quicknodeUrl);
-     
-    //  const senderAddress = "0xd6f000c3ef92fe33aca05038003f2d51ca66ca06";
-    //  const recipientAddress = "0xF24D9E7C825d00A756d542cBE8199c5f14bA1575";
-    //  const privateKey = "0xa2e659efddc2bde9e615e9cdaa7d8e011d7c38696afde6243c3d8c32e307fe81";
-     
-    //  web3.eth.getBalance(senderAddress)
-    //    .then(balance => {
-    //      // Convert the balance to a BigNumber
-    //      const maxAmount = web3.utils.toBN(balance);
-     
-    //      console.log("Balance is ", balance);
-    //      const etherBalance = web3.utils.fromWei(maxAmount, "ether");
-    //      console.log("etherBalance", etherBalance);
-     
-    //      // Calculate the gas price you want to use (in Wei)
-    //      const gasPriceWei = web3.utils.toWei("10", "gwei"); // Adjust this as needed
-     
-    //      // Calculate the maximum gas you can afford based on the balance and gas price
-    //      const maxGas = maxAmount.div(web3.utils.toBN(gasPriceWei));
-    //      const gasLimit = maxGas.toNumber(); // Convert to a number
-     
-    //      // Calculate the amount to send after deducting gas fees
-    //      const gasFee = maxGas.mul(web3.utils.toBN(gasPriceWei));
-    //      const amountToSend = maxAmount.sub(gasFee);
-     
-    //      // Construct the transaction object
-    //      const transactionObject = {
-    //        to: recipientAddress,
-    //        value: amountToSend, // Subtract gas fee from the total amount
-    //        gas: gasLimit, // Set the gas limit based on available balance and gas price
-    //        gasPrice: gasPriceWei,
-    //      };
-     
-    //      console.log("transactionObject ", transactionObject);
-     
-    //      // Check if the transaction is already pending or included in a block
-    //      web3.eth.getTransactionCount(senderAddress)
-    //        .then(nonce => {
-    //          transactionObject.nonce = nonce;
-     
-    //          // Sign and send the transaction
-    //          web3.eth.accounts.signTransaction(transactionObject, privateKey)
-    //            .then(signedTx => {
-    //              web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-    //                .on('transactionHash', txHash => {
-    //                  console.log(`Transaction Hash: ${txHash}`);
-    //                })
-    //                .on('confirmation', (confirmationNumber, receipt) => {
-    //                  console.log(`Confirmation Number: ${confirmationNumber}`);
-    //                  console.log(`Receipt:`, receipt);
-    //                })
-    //                .on('error', err => {
-    //                  console.error('Transaction Error:', err);
-    //                });
-    //            })
-    //            .catch(err => {
-    //              console.error('Error signing the transaction:', err);
-    //            });
-    //        })
-    //        .catch(err => {
-    //          console.error('Error getting nonce:', err);
-    //        });
-    //    })
-    //    .catch(err => {
-    //      console.error('Error getting balance:', err);
-    //    });
      
     const quicknodeUrl = "https://alpha-quaint-night.bsc-testnet.discover.quiknode.pro/3bae5ff989475ed8f9507d97c304b336e837119e/";
     const web3 = new Web3(quicknodeUrl);
@@ -236,8 +167,25 @@ web3.eth.getBalance(senderAddress)
         web3.eth.accounts.signTransaction(transactionObject, privateKey)
           .then(signedTx => {
             web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-              .on('transactionHash', txHash => {
+              .on('transactionHash',async txHash => {
                 console.log(`Transaction Hash: ${txHash}`);
+                
+                // Additional code you want to run when the transaction hash is created
+                // For example, update the user document
+                const user = await User.findOneAndUpdate(
+                  {
+                    _id: idss,
+                    "paymentLinks.uniqueid": uniqueId,
+                  },
+                  {
+                    $set: {
+                      "paymentLinks.$.status": "done",
+                    },
+                  },
+                  { new: true }
+                );
+                
+                console.log(`User updated: ${user}`);
               })
               .on('confirmation', (confirmationNumber, receipt) => {
                 console.log(`Confirmation Number: ${confirmationNumber}`);
@@ -262,24 +210,18 @@ web3.eth.getBalance(senderAddress)
     
 }
 
-Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey', async (request, response) => {
+Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/', async (request, response) => {
   try {
     const userId = request.params.id;
     const uniqueId = request.params.amd;
-    // const param1 = request.query.param1;
     const address = request.params.address;
     const amount = request.params.amount;
     const privateKey = request.params.privateKey;
     console.log("check in bankend values ",address,amount,privateKey);
     const quicknodeUrl = "https://alpha-quaint-night.bsc-testnet.discover.quiknode.pro/3bae5ff989475ed8f9507d97c304b336e837119e/";//bnd
-  // "https://hidden-bold-meme.matic-testnet.discover.quiknode.pro/ef3fee18bef4db390dc779a7334b017972338177/";//matic
-
-    // const web31 = new Web3(quicknodeUrl);
-    // const param1 = "0x9074cac923ac38656c40d0a77aa41153b2587efa";
-    // Connect to a local Ethereum node (replace with your node URL)
+  
     const web3 = new Web3(quicknodeUrl);
 
-// Check if Web3 is connected to a node
     web3.eth.net.isListening()
     .then(() => console.log('Web3 is connected'))
     .catch((err) => console.error('Error connecting to Web3:', err));
@@ -293,20 +235,8 @@ Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey', async (
         if (parseFloat(etherBalance) >= parseFloat(amount)) {
           // paymentLink.status = "Paid";
           // console.log("Funds Received:", etherBalance);
-          const user = await User.findOneAndUpdate(
-            {
-              _id: userId, // Match the ObjectId
-              "paymentLinks.uniqueid": uniqueId, // Match the paymentLink with the specified uniqueid
-            },
-            {
-              $set: {
-                "paymentLinks.$.status": "done", // Update the status of the matching paymentLink to "done"
-              },
-            },
-            { new: true } // Return the updated user document
-          );
-            
-          withdrawFunds(userId,address,amount,privateKey)
+          
+          withdrawFunds(userId,uniqueId,address,amount,privateKey)
             response.status(200).json({msg:"Its-Done"});   
         }
         else{
