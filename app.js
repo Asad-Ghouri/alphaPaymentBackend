@@ -5,7 +5,7 @@ const cors = require('cors'); // Import the CORS middleware
 
 doteenv.config({path: './config.env'});
 require('./DB/connection');
-const port = 5000;
+const port = 5210;
 
 app.use(express.json());
 app.use(require('./Router/auth.js'));
