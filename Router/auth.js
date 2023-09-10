@@ -249,6 +249,41 @@ Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/', async 
 });
 // const { QRCode } = qrcode;
 
+
+Routers.get('/GetDatabyApiKey', async (req, res) => {
+  const apiKey = req.query.id;
+  const amount = req.query.amount;
+  const currency = req.query.currency;
+  const note = "Optional";
+
+  console.log(apiKey)
+  if (!apiKey) {
+    return res.status(400).json({ msg: "Please provide an 'id' query parameter" });
+  }
+  try {
+    const user = await User.findOne({ "apiKeys.apiKey": apiKey });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    var wallet = Wallet["default"].generate();
+    console.log("InPaymentLink:")
+    const paymentLink = {
+      uniqueid: Math.random().toString(36).substring(7),
+      address: wallet.getAddressString(),
+      createdat:new Date(),
+      privateKey: wallet.getPrivateKeyString(),
+      amount,
+      currency,
+      note,
+    };
+
+    user.paymentLinks.push(paymentLink);
+    await user.save();
+    return res.status(200).json({ user });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+});
 const app = express();
 const port = 3001;
 
@@ -345,56 +380,8 @@ Routers.get("/v1/getpaymentid/:id", async (req, res) => {
 });
 
 
-// Withdraw funds from a payment link to a specified address
-// app.post("/api/withdraw-funds/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const { toAddress } = req.body;
 
-//   const paymentLink = paymentLinks.find((link) => link.id === id);
 
-//   if (!paymentLink) {
-//     console.log("Payment Link not found.");
-//     return res.status(404).json({ error: "Payment link not found." });
-//   }
-
-//   try {
-//     const fromAddress = paymentLink.address;
-//     const privateKey = Buffer.from(paymentLink.privateKey, "hex");
-//     const amountToSend = Web3.utils.toWei(
-//       paymentLink.amount.toString(),
-//       "ether"
-//     ); // Convert amount to wei
-
-//     // Create a raw transaction
-//     const txCount = await Web3.eth.getTransactionCount(fromAddress);
-//     const txObject = {
-//       nonce: Web3.utils.toHex(txCount),
-//       to: toAddress,
-//       value: Web3.utils.toHex(amountToSend),
-//       gasLimit: Web3.utils.toHex(21000),
-//       gasPrice: Web3.utils.toHex(Web3.utils.toWei("10", "gwei")),
-//     };
-
-//     const tx = new Tx(txObject, { chain: "mumbai" });
-//     tx.sign(privateKey);
-
-//     const serializedTx = tx.serialize();
-//     const raw = "0x" + serializedTx.toString("hex");
-
-//     // Send the transaction
-//     const receipt = await web3.eth.sendSignedTransaction(raw);
-
-//     paymentLink.status = "Paid";
-
-//     console.log("Funds Withdrawn:", receipt);
-//     console.log("Updated Payment Link:", paymentLink);
-
-//     res.json({ receipt, paymentLink });
-//   } catch (error) {
-//     console.error("Error withdrawing funds:", error);
-//     res.status(500).json({ error: "Error withdrawing funds." });
-//   }
-// });
 
 // Serve static HTML file with QR code for payment link
 app.get("/payment/:id", (req, res) => {
