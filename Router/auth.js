@@ -1,11 +1,6 @@
 const express = require("express");
 const Routers = express.Router();
 const User = require("../Modles/User");
-// const Shop = require("../Modles/Shop");
-// const Customer = require("../Modles/Customer");
-// const Stocks = require("../Modles/Stocks");
-// const Sales = require("../Modles/Sales");
-
 const { v4: uuidv4 } = require("uuid"); // For generating unique IDs
 const bodyParser = require("body-parser");
 const Wallet = require("ethereumjs-wallet");
@@ -353,7 +348,7 @@ app.use(express.static("public")); // Serve static files from the 'public' direc
 // }
 
 // Generate an Ethereum address and payment link
-Routers.post(`/api/generate-payment-link/:id`, async (req, res) => {
+Routers.post(`/generate-payment-link/:id`, async (req, res) => {
   const { amount, currency, note } = req.body;
   try {
     const user = await User.findById(req.params.id);
@@ -398,7 +393,7 @@ Routers.post(`/api/generate-payment-link/:id`, async (req, res) => {
   }
 });
 
-Routers.get("/api/v1/getpaymentid/:id", async (req, res) => {
+Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   try {
     const user = await User.findOne({
       _id: req.params.id, // Match the ObjectId
