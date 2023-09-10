@@ -5,7 +5,7 @@ const cors = require('cors'); // Import the CORS middleware
 
 doteenv.config({path: './config.env'});
 require('./DB/connection');
-const port = 5210;
+const port = 5000;
 
 app.use(express.json());
 app.use(require('./Router/auth.js'));
@@ -20,13 +20,18 @@ app.use(require('./Router/auth.js'));
 //   app.use(cors(corsOptions)); // 
 
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', 'https://alpha-payment-frontend.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200); // Respond OK to OPTIONS requests
+  } else {
     next();
-});
-
+  }
+  });
 
 app.listen(port,() =>{
     console.log(`Sever is running at localhost ${port}`);  
