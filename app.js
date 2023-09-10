@@ -1,6 +1,7 @@
 const express = require('express');
 const app =express();
 const doteenv =require('dotenv');
+const cors = require('cors'); // Import the CORS middleware
 
 doteenv.config({path: './config.env'});
 require('./DB/connection');
@@ -9,13 +10,14 @@ const port = 5000;
 app.use(express.json());
 app.use(require('./Router/auth.js'));
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://payment-asad-ghouri.vercel.app');
-    // You can also specify additional CORS headers as needed.
-    // ...
-    next();
-  });
+const corsOptions = {
+    origin: 'https://payment-asad-ghouri.vercel.app',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true, // Enable credentials (cookies, HTTP authentication) if needed
+    optionsSuccessStatus: 204, // Respond to preflight requests with a 204 status code
+  };
   
+  app.use(cors(corsOptions)); // 
 
 app.listen(port,() =>{
     console.log(`Sever is running at localhost ${port}`);  
