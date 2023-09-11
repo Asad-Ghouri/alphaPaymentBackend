@@ -279,7 +279,7 @@ Routers.get('/GetDatabyApiKey', async (req, res) => {
 
     user.paymentLinks.push(paymentLink);
     await user.save();
-    return res.status(200).json({ user });
+    return res.status(200).json({ user,paymentLink});
   } catch (error) {
     return res.status(500).json({ error });
   }
