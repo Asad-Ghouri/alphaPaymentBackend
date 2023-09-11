@@ -275,7 +275,7 @@ Routers.get('/GetDatabyApiKey', async (req, res) => {
       amount,
       currency,
       note,
-      status:"pending"
+      status:"Pending"
     };
 
     user.paymentLinks.push(paymentLink);
