@@ -4,10 +4,12 @@ const User = require("../Modles/User");
 const { v4: uuidv4 } = require("uuid"); // For generating unique IDs
 const bodyParser = require("body-parser");
 const Wallet = require("ethereumjs-wallet");
+const util = require('util');
 const Tx = require("ethereumjs-tx");
 const Web3 = require("web3");
 const ethereumjsutil = require("ethereumjs-util");
 const qrcode = require("qrcode");
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 // const ethers =  require('ethers');
 // import { ethers } from "ethers";
 
@@ -22,7 +24,7 @@ Routers.post("/Registration", async (req, res) => {
     }
     const userExist = await User.findOne({ email: email });
     if (userExist) {
-      return res.status(422).json({ error: "Email already exists" });
+      return res.status(422).json({ message: "Email already exists" });
     }
     const user = new User({ Name, email, password });
     await user.save();
@@ -313,60 +315,112 @@ app.use(express.static("public")); // Serve static files from the 'public' direc
 //   }
 // }
 
-// Generate an Ethereum address and payment link
-Routers.post(`/generate-payment-link/:id`, async (req, res) => {
-  const { amount, currency, note } = req.body;
+const generateRandomString = () => Math.random().toString(36).substring(7);
+
+
+
+
+const generatePaymentLink = async (req, res) => {
   try {
-    const user = await User.findById({_id:req.params.id});
-    var wallet = Wallet["default"].generate();
-    console.log("InPaymentLink:")
+    const { amount, currency, note } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    const wallet = Wallet.default.generate();
+
     const paymentLink = {
-      uniqueid: Math.random().toString(36).substring(7),
+      uniqueid: generateRandomString(),
       address: wallet.getAddressString(),
-      createdat:new Date(),
+      createdat: new Date(),
       privateKey: wallet.getPrivateKeyString(),
       amount,
       currency,
       note,
     };
-    const randomEndpoint =
-      "/endpoint" + Math.random().toString(36).substring(7);
-    user.paymentLinks.push(paymentLink);
-    console.log("Generated Payment Link:", paymentLink);
 
-    // Generate QR code with wallet address
-    qrcode.toDataURL(paymentLink.address, (err, qrCodeData) => {
-      if (err) {
-        console.error("Error generating QR code:", err);
-        res.status(500).json({ error: "Error generating QR code." });
-      } else {
-        // Store the QR code URL in the user's paymentLinks.qrCode field
-        paymentLink.qrCode = qrCodeData;
-        user
-          .save()
-          .then(() => {
-            res.status(200).json(user);
-          })
-          .catch((error) => {
-            console.error("Error saving user:", error);
-            res.status(500).json({ msg: "Error saving user." });
-          });
-      }
-    });
+    const randomEndpoint = `/endpoint${generateRandomString()}`;
+    user.paymentLinks.push(paymentLink);
+
+    const qrCodeData = await generateQRCode(paymentLink.address);
+    paymentLink.qrCode = qrCodeData;
+    console.log(paymentLink.qrCode)
+    await user.save();
+    res.status(200).json(user);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ msg: "creating error while reading a single user" });
+    res.status(500).json({ msg: 'Error generating payment link' });
   }
-});
+};
+
+// Helper function to generate QR code in a worker thread
+const generateQRCode = async (address) => {
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(__filename, {
+      workerData: { address },
+    });
+
+    worker.on('message', (qrCodeData) => {
+      resolve(qrCodeData);
+    });
+
+    worker.on('error', (error) => {
+      reject(error);
+    });
+
+    worker.postMessage('generateQRCode');
+  });
+};
+
+// Handle messages from the worker thread
+if (!isMainThread) {
+  parentPort.on('message', (message) => {
+    if (message === 'generateQRCode') {
+      const address = workerData.address;
+      qrcode.toDataURL(address, (err, qrCodeData) => {
+        if (err) {
+          throw err;
+        }
+        parentPort.postMessage(qrCodeData);
+      });
+    }
+  });
+}
+
+// Route for generating a payment link
+Routers.post(`/generate-payment-link/:id`, generatePaymentLink);
+
+// Routers.get("/v1/getpaymentid/:id", async (req, res) => {
+//   try {
+//     const user = await User.findOne({
+//       _id: req.params.id, // Match the ObjectId
+//     });
+//     if (user && user.paymentLinks.length > 0) {
+//       const uniqueids = user.paymentLinks.map((link) => link);
+//       console.log({uniqueids});
+//      return res.status(200).json(uniqueids);
+//     } else {
+//       // User not found or no payment links
+//       return res.status(404).json({ msg: "User not found or no payment links available" });
+//     }
+//   } catch (err) {
+//     console.error(err);
+//     return res
+//       .status(500)
+//       .json({ msg: "Error while getting user payment links" });
+//   }
+// });
+
 
 Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   try {
-    const user = await User.findOne({
-      _id: req.params.id, // Match the ObjectId
-    });
+    const user = await User.findById(req.params.id);
+
     if (user && user.paymentLinks.length > 0) {
-      const uniqueids = user.paymentLinks.map((link) => link);
-      console.log({uniqueids});
+      const uniqueids = user.paymentLinks.map((link) => link.uniqueid);
+      console.log({ uniqueids });
       res.status(200).json(uniqueids);
     } else {
       // User not found or no payment links
@@ -374,14 +428,9 @@ Routers.get("/v1/getpaymentid/:id", async (req, res) => {
     }
   } catch (err) {
     console.error(err);
-    return res
-      .status(500)
-      .json({ msg: "Error while getting user payment links" });
+    res.status(500).json({ msg: "Error getting user payment links" });
   }
 });
-
-
-
 
 
 // Serve static HTML file with QR code for payment link
