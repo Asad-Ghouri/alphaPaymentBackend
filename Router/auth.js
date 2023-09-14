@@ -418,7 +418,7 @@ Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
-    if (user && user.paymentLinks.length > 0) {
+    if (user && user.paymentLinks.length >= 0) {
       const uniqueids = user.paymentLinks.map((link) => link.uniqueid);
       console.log({ uniqueids });
       res.status(200).json(uniqueids);
