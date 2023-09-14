@@ -317,7 +317,7 @@ app.use(express.static("public")); // Serve static files from the 'public' direc
 Routers.post(`/generate-payment-link/:id`, async (req, res) => {
   const { amount, currency, note } = req.body;
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById({_id:req.params.id});
     var wallet = Wallet["default"].generate();
     console.log("InPaymentLink:")
     const paymentLink = {
@@ -355,13 +355,15 @@ Routers.post(`/generate-payment-link/:id`, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ msg: "error while reading a single user" });
+    return res.status(500).json({ msg: "creating error while reading a single user" });
   }
 });
 
 Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   try {
-    const user = await User.findOne(req.params.id);
+    const user = await User.findOne({
+      _id: req.params.id, // Match the ObjectId
+    });
     if (user && user.paymentLinks.length > 0) {
       const uniqueids = user.paymentLinks.map((link) => link);
       console.log({uniqueids});
@@ -374,7 +376,7 @@ Routers.get("/v1/getpaymentid/:id", async (req, res) => {
     console.error(err);
     return res
       .status(500)
-      .json({ msg: "Error while reading a single user" });
+      .json({ msg: "Error while getting user payment links" });
   }
 });
 
