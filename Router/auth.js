@@ -361,9 +361,7 @@ Routers.post(`/generate-payment-link/:id`, async (req, res) => {
 
 Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   try {
-    const user = await User.findOne({
-      _id: req.params.id, // Match the ObjectId
-    });
+    const user = await User.findOne(req.params.id);
     if (user && user.paymentLinks.length > 0) {
       const uniqueids = user.paymentLinks.map((link) => link);
       console.log({uniqueids});
