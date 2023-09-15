@@ -432,26 +432,51 @@ Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   }
 });
 
+Routers.get('/userCount/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate the lengths of apiKeys and paymentLinks arrays
+    const apiKeyCount = user.apiKeys.length;
+    const paymentLinksCount = user.paymentLinks.length;
+
+    // Return the user data along with counts
+    res.status(200).json({
+      apiKeyCount,
+      paymentLinksCount,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 // Serve static HTML file with QR code for payment link
-app.get("/payment/:id", (req, res) => {
-  const { id } = req.params;
-  const paymentLink = paymentLinks.find((link) => link.id === id);
+// app.get("/payment/:id", (req, res) => {
+//   const { id } = req.params;
+//   const paymentLink = paymentLinks.find((link) => link.id === id);
 
-  if (!paymentLink) {
-    console.log("Payment Link not found.");
-    return res.status(404).json({ error: "Payment link not found." });
-  }
+//   if (!paymentLink) {
+//     console.log("Payment Link not found.");
+//     return res.status(404).json({ error: "Payment link not found." });
+//   }
 
-  // Here, you can use a QR code generation library (e.g., qr-image) to generate a QR code with the payment link.
-  // Then, serve the HTML page with the QR code.
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-    paymentLink.paymentLink
-  )}`;
-  const qrCodeHtml = `<html><body><img src="${qrCodeUrl}" alt="Payment QR Code"></body></html>`;
+//   // Here, you can use a QR code generation library (e.g., qr-image) to generate a QR code with the payment link.
+//   // Then, serve the HTML page with the QR code.
+//   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+//     paymentLink.paymentLink
+//   )}`;
+//   const qrCodeHtml = `<html><body><img src="${qrCodeUrl}" alt="Payment QR Code"></body></html>`;
 
-  console.log("Served Payment QR Code:", paymentLink);
-  res.send(qrCodeHtml);
-});
+//   console.log("Served Payment QR Code:", paymentLink);
+//   res.send(qrCodeHtml);
+// });
 
 module.exports = Routers;
