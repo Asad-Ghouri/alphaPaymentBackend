@@ -174,20 +174,20 @@ web3.eth.getBalance(senderAddress)
                 
                 // Additional code you want to run when the transaction hash is created
                 // For example, update the user document
-                const user = await User.findOneAndUpdate(
-                  {
-                    _id: idss,
-                    "paymentLinks.uniqueid": uniqueId,
-                  },
-                  {
-                    $set: {
-                      "paymentLinks.$.status": "done",
-                    },
-                  },
-                  { new: true }
-                );
+                // const user = await User.findOneAndUpdate(
+                //   {
+                //     _id: idss,
+                //     "paymentLinks.uniqueid": uniqueId,
+                //   },
+                //   {
+                //     $set: {
+                //       "paymentLinks.$.status": "done",
+                //     },
+                //   },
+                //   { new: true }
+                // );
                 
-                console.log(`User updated: ${user}`);
+                // console.log(`User updated: ${user}`);
               })
               .on('confirmation', (confirmationNumber, receipt) => {
                 console.log(`Confirmation Number: ${confirmationNumber}`);
@@ -237,6 +237,18 @@ Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/', async 
         if (parseFloat(etherBalance) >= parseFloat(amount)) {
           // paymentLink.status = "Paid";
           // console.log("Funds Received:", etherBalance);
+          const user = await User.findOneAndUpdate(
+            {
+              _id: userId,
+              "paymentLinks.uniqueid": uniqueId,
+            },
+            {
+              $set: {
+                "paymentLinks.$.status": "done",
+              },
+            },
+            { new: true }
+          );
           
           withdrawFunds(userId,uniqueId,address,amount,privateKey)
             response.status(200).json({msg:"Its-Done"});   
