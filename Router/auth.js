@@ -1,6 +1,7 @@
 const express = require("express");
 const Routers = express.Router();
 const User = require("../Modles/User");
+const Admin = require('../Modles/Admin');
 const { v4: uuidv4 } = require("uuid"); // For generating unique IDs
 const bodyParser = require("body-parser");
 const Wallet = require("ethereumjs-wallet");
@@ -12,6 +13,8 @@ const qrcode = require("qrcode");
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 // const ethers =  require('ethers');
 // import { ethers } from "ethers";
+const db = "mongodb+srv://asad:asad123123@cluster0.ulf5twe.mongodb.net/?retryWrites=true&w=majority";
+
 
 
 Routers.post("/Registration", async (req, res) => {
@@ -490,5 +493,359 @@ Routers.get('/userCount/:id', async (req, res) => {
 //   console.log("Served Payment QR Code:", paymentLink);
 //   res.send(qrCodeHtml);
 // });
+
+
+// -------admin dashboard------
+Routers.post("/Adminlogin", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Please fill all the fields properly" });
+    }
+    const userLogin = await User.findOne({ email: email });
+    if (
+      userLogin &&
+      userLogin.email === email &&
+      userLogin.password === password
+    ) {
+      return res.status(201).json({
+        message: "User logged in successfully",
+        userId: userLogin._id,
+      });
+    } else {
+      return res.status(400).json({ error: "Invalid Credentials" });
+    }
+  } catch (err) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+Routers.get('/countUser', async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    console.log("Total Documents are ",userCount)
+    res.json({ totalUsers: userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+Routers.get('/CountpaymentLinks', async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $group: {
+          _id: null,
+          totalPaymentLinks: { $sum: { $size: '$paymentLinks' } },
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+
+    // Extract the totalPaymentLinks value from the result
+    const totalPaymentLinks = result[0]?.totalPaymentLinks || 0;
+
+    res.json({ totalPaymentLinks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+
+});
+
+
+Routers.get('/PendingPaymentLinks', async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+      },
+      {
+        $match: {
+          'paymentLinks.status': 'Pending', // Filter by status: pending
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalPendingPaymentLinks: { $sum: 1 }, // Count the documents
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+
+    // Extract the totalPendingPaymentLinks value from the result
+    const totalPendingPaymentLinks = result[0]?.totalPendingPaymentLinks || 0;
+
+    res.json({ totalPendingPaymentLinks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+
+// Route to get the total payment links for each user
+Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+      },
+      {
+        $group: {
+          _id: '$_id',
+          email: { $first: '$email' }, // Include email
+          paymentLinks: { $push: '$paymentLinks' }, // Include payment links
+          totalPaymentLinks: { $sum: 1 }, // Count the documents
+        },
+      },
+      {
+        $project: {
+          _id: 0, // Exclude _id
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+// Route to get the total count of payment links with status "done" across all users
+Routers.get('/DonePaymentLinks', async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+      },
+      {
+        $match: {
+          'paymentLinks.status': 'done', // Filter by status: done
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalDonePaymentLinks: { $sum: 1 }, // Count the documents
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+
+    // Extract the totalDonePaymentLinks value from the result
+    const totalDonePaymentLinks = result[0]?.totalDonePaymentLinks || 0;
+
+    res.json({ totalDonePaymentLinks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Route to get the total payment links with status "done" for each user
+Routers.get('/DonePaymentLinksDetail', async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+      },
+      {
+        $match: {
+          'paymentLinks.status': 'done', // Filter by status: done
+        },
+      },
+      {
+        $group: {
+          _id: '$_id',
+          email: { $first: '$email' }, // Include email
+          donePaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
+          totalDonePaymentLinks: { $sum: 1 }, // Count the documents
+        },
+      },
+      {
+        $project: {
+          _id: 0, // Exclude _id
+        },
+      },
+    ];
+
+    const result = await User.aggregate(pipeline);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+Routers.get('/AllUsers', async (req, res) => {
+  try {
+    const users = await User.find({}, 'email password'); // Project only email and password fields
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+Routers.get('/SpecificUser/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    console.log("user id is ",userId)
+    const user = await User.findById(userId); // Find a user by ID
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+Routers.put('/EditUsers/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    const updatedUserData = req.body; // New user data to be updated
+
+    console.log("requested data is ",updatedUserData)
+
+    // Update user information in the database
+    const updatedUser = await User.findByIdAndUpdate(userId, updatedUserData, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Edit API key by user ID and API key ID
+Routers.put('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const apiKeyId = req.params.apiKeyId;
+    // {apiKey:"c0710b91-5838-4656-92ed-ba9f79b4f666"}
+    const updatedApiKeyData = req.body; // New API key data to be updated
+
+    // Find the user by ID and update the API key with the specified ID
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, 'apiKeys._id': apiKeyId },
+      { $set: { 'apiKeys.$': updatedApiKeyData } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User or API key not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Edit payment link by user ID and payment link ID
+Routers.put('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const paymentLinkId = req.params.paymentLinkId;
+    const updatedPaymentLinkData = req.body; // New payment link data to be updated
+    // {uniqueid:"asad"}
+    // Find the user by ID and update the payment link with the specified ID
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, 'paymentLinks._id': paymentLinkId },
+      { $set: { 'paymentLinks.$': updatedPaymentLinkData } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User or payment link not found' });
+    }
+
+    res.json(updatedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+
+Routers.delete('/DeleteUser/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Delete user information from the database
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Delete API key by user ID and API key ID
+Routers.delete('/DeleteUserApiKey/:userId/:apiKeyId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const apiKeyId = req.params.apiKeyId;
+
+    // Find the user by ID and remove the API key with the specified ID
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+      $pull: { apiKeys: { _id: apiKeyId } },
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User or API key not found' });
+    }
+
+    res.json({ message: 'API key deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Delete payment link by user ID and payment link ID
+Routers.delete('/DeleteUserpaymentLinks/:userId/:paymentLinkId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const paymentLinkId = req.params.paymentLinkId;
+
+    // Find the user by ID and remove the payment link with the specified ID
+    const updatedUser = await User.findByIdAndUpdate(userId, {
+      $pull: { paymentLinks: { _id: paymentLinkId } },
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User or payment link not found' });
+    }
+
+    res.json({ message: 'Payment link deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 
 module.exports = Routers;
