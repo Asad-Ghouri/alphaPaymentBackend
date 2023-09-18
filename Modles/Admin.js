@@ -11,6 +11,9 @@ const adminSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  commissionRate: { type: Number,
+    default: 3,
+  },
 });
 
 const Admin = mongoose.model('Admin', adminSchema);

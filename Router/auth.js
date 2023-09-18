@@ -504,7 +504,7 @@ Routers.post("/Adminlogin", async (req, res) => {
         .status(400)
         .json({ error: "Please fill all the fields properly" });
     }
-    const userLogin = await User.findOne({ email: email });
+    const userLogin = await Admin.findOne({ email: email });
     if (
       userLogin &&
       userLogin.email === email &&
@@ -842,6 +842,21 @@ Routers.delete('/DeleteUserpaymentLinks/:userId/:paymentLinkId', async (req, res
 
     res.json({ message: 'Payment link deleted successfully' });
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Endpoint to set the commission rate by admin
+Routers.put('/admin/commissionRate', async (req, res) => {
+  try {
+    const { commissionRate } = req.body;
+
+    // Update the commission rate in the admin schema
+    await Admin.updateOne({}, { commissionRate });
+    res.json({ message: 'Commission rate updated successfully' });
+  } 
+  catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
   }
