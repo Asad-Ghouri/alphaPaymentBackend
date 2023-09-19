@@ -1021,12 +1021,12 @@ Routers.put('/admin/commissionRate', async (req, res) => {
 // Endpoint to get the commission rate by admin
 Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
  const userId = req.params.userId;
-  try {
     const admin = await admins.findById(userId); 
-    res.json(admin);
-  } catch (err) {
-    console.error(err);
+    
+  if(!admin){
     res.status(500).json({ message: 'Server Error' });
+  }
+  res.json(admin);
   }
 });
 
