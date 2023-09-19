@@ -1020,7 +1020,7 @@ Routers.put('/admin/commissionRate', async (req, res) => {
 
 
 // Edit API key by user ID and API key ID
-Routers.get('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
+Routers.get('/getUsersApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
     const { userId, apiKeyId } = req.params;
 
@@ -1048,7 +1048,7 @@ Routers.get('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
 });
 
 // Edit payment link by user ID and payment link ID
-Routers.get('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
+Routers.get('/getUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
   try {
     const { userId, paymentLinkId } = req.params;
 
