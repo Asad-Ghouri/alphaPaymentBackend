@@ -1019,9 +1019,10 @@ Routers.put('/admin/commissionRate', async (req, res) => {
 });
 
 // Endpoint to get the commission rate by admin
-Routers.get('/admin/getcommissionRate', async (req, res) => {
+Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
+ const userId = req.params.userId;
   try {
-    const admin = await admin.find({}); 
+    const admin = await admins.findById(userId); 
     res.json(admin);
   } catch (err) {
     console.error(err);
