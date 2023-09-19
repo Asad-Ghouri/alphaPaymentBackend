@@ -1027,7 +1027,7 @@ Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
   res.json(admin);
-  }
+  
 });
 
 // Edit API key by user ID and API key ID
