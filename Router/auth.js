@@ -756,9 +756,9 @@ Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
       {
         $group: {
           _id: '$_id',
-          // email: { $first: '$email' }, // Include email
+          email: { $first: '$email' }, // Include email
           paymentLinks: { $push: '$paymentLinks' }, // Include payment links
-          // totalPaymentLinks: { $sum: 1 }, // Count the documents
+          totalPaymentLinks: { $sum: 1 }, // Count the documents
         },
       },
       {
@@ -822,9 +822,9 @@ Routers.get('/DonePaymentLinksDetail', async (req, res) => {
       {
         $group: {
           _id: '$_id',
-          // email: { $first: '$email' }, // Include email
+          email: { $first: '$email' }, // Include email
           donePaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
-          // totalDonePaymentLinks: { $sum: 1 }, // Count the documents
+          totalDonePaymentLinks: { $sum: 1 }, // Count the documents
         },
       },
       {
