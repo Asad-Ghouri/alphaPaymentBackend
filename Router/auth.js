@@ -1079,5 +1079,25 @@ Routers.get('/getUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => 
   }
 });
 
+Routers.get("/AdminInfo/:id", async (req, res) => {
+  try {
+    const  userId = req.params.id;
+    // Find the user by ID
+    console.log(userId)
+
+    const user = await Admin.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+
+ 
+});
 
 module.exports = Routers;
