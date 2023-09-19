@@ -271,7 +271,7 @@ async function withdrawFunds(idss, uniqueId, address, amount, privateKeys) {
       const totalAmount = maxAmount;
 
       // Calculate the commission amount
-      const commissionAmountWei = totalAmount.mul(web3.utils.toBN(commissionRate * 100)); // Convert percentage to decimal
+      const commissionAmountWei = totalAmount.mul(web3.utils.toBN(commissionRate)); // Convert percentage to decimal
 
       // Calculate the amount to send to the admin after deducting commission and gas fees
       const adminAmountToSend = commissionAmountWei.sub(gasFeeWei);
@@ -756,9 +756,9 @@ Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
       {
         $group: {
           _id: '$_id',
-          email: { $first: '$email' }, // Include email
+          // email: { $first: '$email' }, // Include email
           paymentLinks: { $push: '$paymentLinks' }, // Include payment links
-          totalPaymentLinks: { $sum: 1 }, // Count the documents
+          // totalPaymentLinks: { $sum: 1 }, // Count the documents
         },
       },
       {
@@ -822,9 +822,9 @@ Routers.get('/DonePaymentLinksDetail', async (req, res) => {
       {
         $group: {
           _id: '$_id',
-          email: { $first: '$email' }, // Include email
+          // email: { $first: '$email' }, // Include email
           donePaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
-          totalDonePaymentLinks: { $sum: 1 }, // Count the documents
+          // totalDonePaymentLinks: { $sum: 1 }, // Count the documents
         },
       },
       {
@@ -1013,6 +1013,67 @@ Routers.put('/admin/commissionRate', async (req, res) => {
     res.json({ message: 'Commission rate updated successfully' });
   } 
   catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+
+// Edit API key by user ID and API key ID
+Routers.get('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
+  try {
+    const { userId, apiKeyId } = req.params;
+
+    console.log(userId, apiKeyId)
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find the API key by API key ID
+    const apiKey = user.apiKeys.find((key) => key._id.toString() === apiKeyId);
+
+    if (!apiKey) {
+      return res.status(404).json({ message: 'API key not found for the user' });
+    }
+
+    res.json(apiKey);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+
+});
+
+// Edit payment link by user ID and payment link ID
+Routers.get('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
+  try {
+    const { userId, paymentLinkId } = req.params;
+
+    // Find the user by ID
+    console.log(userId, paymentLinkId)
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Find the payment link by payment link ID
+    const paymentLink = user.paymentLinks.find(
+      (link) => link._id.toString() === paymentLinkId
+    );
+
+    if (!paymentLink) {
+      return res
+        .status(404)
+        .json({ message: 'Payment link not found for the user' });
+    }
+
+    res.json(paymentLink);
+  } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
   }
