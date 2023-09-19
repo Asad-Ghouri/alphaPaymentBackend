@@ -1018,6 +1018,17 @@ Routers.put('/admin/commissionRate', async (req, res) => {
   }
 });
 
+// Endpoint to get the commission rate by admin
+Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
+ const userId = req.params.userId;
+    const admin = await admins.findById(userId); 
+    
+  if(!admin){
+    res.status(500).json({ message: 'Server Error' });
+  }
+  res.json(admin);
+  
+});
 
 // Edit API key by user ID and API key ID
 Routers.get('/getUsersApiKey/:userId/:apiKeyId', async (req, res) => {
