@@ -11,11 +11,17 @@ const Web3 = require("web3");
 const ethereumjsutil = require("ethereumjs-util");
 const qrcode = require("qrcode");
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
-// const ethers =  require('ethers');
-// import { ethers } from "ethers";
+const nodemailer = require('nodemailer');
 const db = "mongodb+srv://asad:asad123123@cluster0.ulf5twe.mongodb.net/?retryWrites=true&w=majority";
 
 
+const transporter = nodemailer.createTransport({
+  service: 'Gmail', // e.g., 'Gmail' for Gmail, or use SMTP settings
+  auth: {
+    user: 'l201334@lhr.nu.edu.pk',
+    pass: 'Pakistan4565!',
+  },
+});
 
 Routers.post("/Registration", async (req, res) => {
   try {
@@ -31,6 +37,22 @@ Routers.post("/Registration", async (req, res) => {
     }
     const user = new User({ Name, email, password });
     await user.save();
+ // Send a registration confirmation email
+  const mailOptions = {
+  from: email, // Sender's email address
+  to: 'l201334@lhr.nu.edu.pk', // Recipient's email address
+  subject: 'Registration Confirmation', // Email subject
+  text: `${email} has rejister`, // Email body
+};
+
+transporter.sendMail(mailOptions, (error, info) => {
+  if (error) {
+    console.error('Error sending email:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+  console.log('Email sent:', info.response);
+   });
+
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     return res.status(500).json({ error: "Internal server error" });
