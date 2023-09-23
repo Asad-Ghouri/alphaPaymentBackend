@@ -23,6 +23,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const adminEmail = 'asadghouri546@gmail.com';
+
 Routers.post("/Registration", async (req, res) => {
   try {
     const { Name, email, password } = req.body;
@@ -37,21 +39,38 @@ Routers.post("/Registration", async (req, res) => {
     }
     const user = new User({ Name, email, password });
     await user.save();
- // Send a registration confirmation email
-  const mailOptions = {
-  from: email, // Sender's email address
-  to: 'l201334@lhr.nu.edu.pk', // Recipient's email address
-  subject: 'Registration Confirmation', // Email subject
-  text: `${email} has rejister`, // Email body
-};
+ 
+    // Send a registration confirmation email
+    const userMailOptions = {
+      from: adminEmail,
+      to: email,
+      subject: 'Registration Confirmation',
+      text: 'Thank you for registering on our website!',
+    };
 
-transporter.sendMail(mailOptions, (error, info) => {
-  if (error) {
-    console.error('Error sending email:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-  console.log('Email sent:', info.response);
-   });
+    transporter.sendMail(userMailOptions, (userError, userInfo) => {
+      if (userError) {
+        console.error('Error sending user email:', userError);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      console.log('User email sent:', userInfo.response);
+    });
+
+    // Send a registration notification email to the admin
+    const adminMailOptions = {
+      from: email,
+      to: adminEmail, // Send the notification to the admin's email
+      subject: 'New User Registration',
+      text: `A new user with email ${email} has registered on the website.`,
+    };
+
+    transporter.sendMail(adminMailOptions, (adminError, adminInfo) => {
+      if (adminError) {
+        console.error('Error sending admin email:', adminError);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+      console.log('Admin email sent:', adminInfo.response);
+    });
 
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
