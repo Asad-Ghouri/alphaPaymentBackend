@@ -215,159 +215,159 @@ web3.eth.getBalance(senderAddress)
     
 }
 
-async function withdrawFunds(idss, uniqueId, address, amount, privateKeys) {
-  const id = idss;
+// async function withdrawFunds(idss, uniqueId, address, amount, privateKeys) {
+//   const id = idss;
 
-  console.log("withdrawFunds ", address, amount, privateKeys);
-  console.log("withdrawFunds");
+//   console.log("withdrawFunds ", address, amount, privateKeys);
+//   console.log("withdrawFunds");
 
-  const quicknodeUrl =
-    "https://alpha-quaint-night.bsc-testnet.discover.quiknode.pro/3bae5ff989475ed8f9507d97c304b336e837119e/";
-  const web3 = new Web3(quicknodeUrl);
+//   const quicknodeUrl =
+//     "https://alpha-quaint-night.bsc-testnet.discover.quiknode.pro/3bae5ff989475ed8f9507d97c304b336e837119e/";
+//   const web3 = new Web3(quicknodeUrl);
 
-  const senderAddress = address;
-  const adminAddress = "0xF24D9E7C825d00A756d542cBE8199c5f14bA1575"; // Admin's address
-  const privateKey = privateKeys;
+//   const senderAddress = address;
+//   const adminAddress = "0xF24D9E7C825d00A756d542cBE8199c5f14bA1575"; // Admin's address
+//   const privateKey = privateKeys;
 
   
-  let commissionRates;
-  try {
-    const admin = await Admin.findOne({}); // Assuming you have a single admin record
-    if (admin) {
-      commissionRates = admin.commissionRate; // Get the commission rate from the admin document
-    } else {
-      // Handle the case where no admin document is found or set a default commission rate
-      commissionRates = 3; // Default commission rate (5%)
-    }
-  } catch (err) {
-    console.error('Error fetching admin commission rate:', err);
-    // Handle the error or set a default commission rate
-    commissionRates = 3; // Default commission rate (5%)
-  }
+//   let commissionRates;
+//   try {
+//     const admin = await Admin.findOne({}); // Assuming you have a single admin record
+//     if (admin) {
+//       commissionRates = admin.commissionRate; // Get the commission rate from the admin document
+//     } else {
+//       // Handle the case where no admin document is found or set a default commission rate
+//       commissionRates = 3; // Default commission rate (5%)
+//     }
+//   } catch (err) {
+//     console.error('Error fetching admin commission rate:', err);
+//     // Handle the error or set a default commission rate
+//     commissionRates = 3; // Default commission rate (5%)
+//   }
 
-  const commissionRate = (commissionRates/100); // Replace with the actual commission rate set by admin (e.g., 5%)
-   console.log("comission rate is ",commissionRate)
-  // Define the recipient's address
-  const recipientAddress = "0x46F9E68A45B24C839c15D72Df031555F798E42CD"; // Replace with the actual recipient's address
+//   const commissionRate = (commissionRates/100); // Replace with the actual commission rate set by admin (e.g., 5%)
+//    console.log("comission rate is ",commissionRate)
+//   // Define the recipient's address
+//   const recipientAddress = "0x46F9E68A45B24C839c15D72Df031555F798E42CD"; // Replace with the actual recipient's address
 
-  web3.eth.getBalance(senderAddress)
-    .then((balance) => {
-      // Convert the balance to a BigNumber
-      const maxAmount = web3.utils.toBN(balance);
+//   web3.eth.getBalance(senderAddress)
+//     .then((balance) => {
+//       // Convert the balance to a BigNumber
+//       const maxAmount = web3.utils.toBN(balance);
 
-      console.log("Balance is ", balance);
-      const etherBalance = web3.utils.fromWei(maxAmount, "ether");
-      console.log("etherBalance", etherBalance);
+//       console.log("Balance is ", balance);
+//       const etherBalance = web3.utils.fromWei(maxAmount, "ether");
+//       console.log("etherBalance", etherBalance);
 
-      // Calculate the gas price you want to use (in Wei)
-      const gasPriceWei = web3.utils.toWei("10", "gwei"); // Adjust this as needed
+//       // Calculate the gas price you want to use (in Wei)
+//       const gasPriceWei = web3.utils.toWei("10", "gwei"); // Adjust this as needed
 
-      // Calculate the maximum gas you can afford based on the balance and gas price
-      const gasLimit = 21000; // Gas limit (typical value for a simple ETH transfer)
-      const gasLimitBN = web3.utils.toBN(gasLimit);
-      const gasFeeWei = gasLimitBN.mul(web3.utils.toBN(gasPriceWei));
+//       // Calculate the maximum gas you can afford based on the balance and gas price
+//       const gasLimit = 21000; // Gas limit (typical value for a simple ETH transfer)
+//       const gasLimitBN = web3.utils.toBN(gasLimit);
+//       const gasFeeWei = gasLimitBN.mul(web3.utils.toBN(gasPriceWei));
 
-      // Calculate the total amount to send before deducting gas fees
-      const totalAmount = maxAmount;
+//       // Calculate the total amount to send before deducting gas fees
+//       const totalAmount = maxAmount;
 
-      // Calculate the commission amount
-      const commissionAmountWei = totalAmount.mul(web3.utils.toBN(commissionRate)); // Convert percentage to decimal
+//       // Calculate the commission amount
+//       const commissionAmountWei = totalAmount.mul(web3.utils.toBN(commissionRate)); // Convert percentage to decimal
 
-      // Calculate the amount to send to the admin after deducting commission and gas fees
-      const adminAmountToSend = commissionAmountWei.sub(gasFeeWei);
+//       // Calculate the amount to send to the admin after deducting commission and gas fees
+//       const adminAmountToSend = commissionAmountWei.sub(gasFeeWei);
 
-      // Calculate the amount to send to the recipient after deducting commission and gas fees
-      const recipientAmountToSend = totalAmount.sub(commissionAmountWei).sub(gasFeeWei);
+//       // Calculate the amount to send to the recipient after deducting commission and gas fees
+//       const recipientAmountToSend = totalAmount.sub(commissionAmountWei).sub(gasFeeWei);
 
-      console.log("Gas Fee is ", web3.utils.fromWei(gasFeeWei, "ether"), "BNB");
-      console.log("Admin's Commission Amount is ", web3.utils.fromWei(adminAmountToSend, "ether"), "BNB");
-      console.log("Recipient's Amount is ", web3.utils.fromWei(recipientAmountToSend, "ether"), "BNB");
+//       console.log("Gas Fee is ", web3.utils.fromWei(gasFeeWei, "ether"), "BNB");
+//       console.log("Admin's Commission Amount is ", web3.utils.fromWei(adminAmountToSend, "ether"), "BNB");
+//       console.log("Recipient's Amount is ", web3.utils.fromWei(recipientAmountToSend, "ether"), "BNB");
 
       
-      console.log("admin value send is ",adminAmountToSend,"other value send is ",recipientAmountToSend)
-      // Construct the transaction object for admin's commission
-      const adminTransactionObject = {
-        to: adminAddress,
-        value: adminAmountToSend.toString(), // Convert to string before sending
-        gas: gasLimit, // Set the gas limit
-        gasPrice: gasPriceWei, // Gas price in Wei
-      };
+//       console.log("admin value send is ",adminAmountToSend,"other value send is ",recipientAmountToSend)
+//       // Construct the transaction object for admin's commission
+//       const adminTransactionObject = {
+//         to: adminAddress,
+//         value: adminAmountToSend.toString(), // Convert to string before sending
+//         gas: gasLimit, // Set the gas limit
+//         gasPrice: gasPriceWei, // Gas price in Wei
+//       };
 
-      // Construct the transaction object for recipient
-      const recipientTransactionObject = {
-        to: recipientAddress,
-        value: recipientAmountToSend.toString(), // Convert to string before sending
-        gas: gasLimit, // Set the gas limit
-        gasPrice: gasPriceWei, // Gas price in Wei
-      };
+//       // Construct the transaction object for recipient
+//       const recipientTransactionObject = {
+//         to: recipientAddress,
+//         value: recipientAmountToSend.toString(), // Convert to string before sending
+//         gas: gasLimit, // Set the gas limit
+//         gasPrice: gasPriceWei, // Gas price in Wei
+//       };
 
-      console.log("Admin's Transaction Object ", adminTransactionObject);
-      console.log("Recipient's Transaction Object ", recipientTransactionObject);
+//       console.log("Admin's Transaction Object ", adminTransactionObject);
+//       console.log("Recipient's Transaction Object ", recipientTransactionObject);
 
-      // Check if the transaction is already pending or included in a block
-      web3.eth.getTransactionCount(senderAddress)
-        .then((nonce) => {
-          // Set nonce for both transactions
-          adminTransactionObject.nonce = nonce;
-          recipientTransactionObject.nonce = nonce + 1; // Increment nonce for the recipient's transaction
+//       // Check if the transaction is already pending or included in a block
+//       web3.eth.getTransactionCount(senderAddress)
+//         .then((nonce) => {
+//           // Set nonce for both transactions
+//           adminTransactionObject.nonce = nonce;
+//           recipientTransactionObject.nonce = nonce + 1; // Increment nonce for the recipient's transaction
 
-          // Sign and send the admin's commission transaction
-          web3.eth.accounts.signTransaction(adminTransactionObject, privateKey)
-            .then((adminSignedTx) => {
-              web3.eth.sendSignedTransaction(adminSignedTx.rawTransaction)
-                .on('transactionHash', async (adminTxHash) => {
-                  console.log(`Admin's Transaction Hash: ${adminTxHash}`);
-                })
-                .on('confirmation', (confirmationNumber, adminReceipt) => {
-                  console.log(`Admin's Confirmation Number: ${confirmationNumber}`);
-                  console.log(`Admin's Receipt:`, adminReceipt);
-                })
-                .on('error', (err) => {
-                  console.error("Admin's Transaction Error:", err);
-                });
-            })
-            .catch((err) => {
-              console.error("Error signing the admin's transaction:", err);
-            });
+//           // Sign and send the admin's commission transaction
+//           web3.eth.accounts.signTransaction(adminTransactionObject, privateKey)
+//             .then((adminSignedTx) => {
+//               web3.eth.sendSignedTransaction(adminSignedTx.rawTransaction)
+//                 .on('transactionHash', async (adminTxHash) => {
+//                   console.log(`Admin's Transaction Hash: ${adminTxHash}`);
+//                 })
+//                 .on('confirmation', (confirmationNumber, adminReceipt) => {
+//                   console.log(`Admin's Confirmation Number: ${confirmationNumber}`);
+//                   console.log(`Admin's Receipt:`, adminReceipt);
+//                 })
+//                 .on('error', (err) => {
+//                   console.error("Admin's Transaction Error:", err);
+//                 });
+//             })
+//             .catch((err) => {
+//               console.error("Error signing the admin's transaction:", err);
+//             });
 
-          // Sign and send the recipient's transaction
-          web3.eth.accounts.signTransaction(recipientTransactionObject, privateKey)
-            .then((recipientSignedTx) => {
-              web3.eth.sendSignedTransaction(recipientSignedTx.rawTransaction)
-                .on('transactionHash', async (recipientTxHash) => {
-                  console.log(`Recipient's Transaction Hash: ${recipientTxHash}`);
-                                    // Additional code you want to run when the recipient's transaction hash is created
-                })
-                .on('confirmation', (confirmationNumber, recipientReceipt) => {
-                  console.log(`Recipient's Confirmation Number: ${confirmationNumber}`);
-                  console.log(`Recipient's Receipt:`, recipientReceipt);
+//           // Sign and send the recipient's transaction
+//           web3.eth.accounts.signTransaction(recipientTransactionObject, privateKey)
+//             .then((recipientSignedTx) => {
+//               web3.eth.sendSignedTransaction(recipientSignedTx.rawTransaction)
+//                 .on('transactionHash', async (recipientTxHash) => {
+//                   console.log(`Recipient's Transaction Hash: ${recipientTxHash}`);
+//                                     // Additional code you want to run when the recipient's transaction hash is created
+//                 })
+//                 .on('confirmation', (confirmationNumber, recipientReceipt) => {
+//                   console.log(`Recipient's Confirmation Number: ${confirmationNumber}`);
+//                   console.log(`Recipient's Receipt:`, recipientReceipt);
 
-                  // Additional code you want to run when the recipient's transaction is confirmed
-                })
-                .on('error', (err) => {
-                  console.error("Recipient's Transaction Error:", err);
+//                   // Additional code you want to run when the recipient's transaction is confirmed
+//                 })
+//                 .on('error', (err) => {
+//                   console.error("Recipient's Transaction Error:", err);
 
-                  // Handle error for the recipient's transaction
-                });
-            })
-            .catch((err) => {
-              console.error("Error signing the recipient's transaction:", err);
+//                   // Handle error for the recipient's transaction
+//                 });
+//             })
+//             .catch((err) => {
+//               console.error("Error signing the recipient's transaction:", err);
 
-              // Handle error when signing the recipient's transaction
-            });
-        })
-        .catch((err) => {
-          console.error('Error getting nonce:', err);
+//               // Handle error when signing the recipient's transaction
+//             });
+//         })
+//         .catch((err) => {
+//           console.error('Error getting nonce:', err);
 
-          // Handle error when getting nonce
-        });
-    })
-    .catch((err) => {
-      console.error('Error getting balance:', err);
+//           // Handle error when getting nonce
+//         });
+//     })
+//     .catch((err) => {
+//       console.error('Error getting balance:', err);
 
-      // Handle error when getting balance
-    });
-}
+//       // Handle error when getting balance
+//     });
+// }
 
                                    
 
