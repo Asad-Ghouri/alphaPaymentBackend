@@ -494,7 +494,7 @@ Routers.get('/GetDatabyApiKey', async (req, res) => {
 });
 
 //
-Routers.get('/GetLinkbyApiKey', async (req, res) => {
+Routers.post('/GetLinkbyApiKey', async (req, res) => {
   const apiKey = req.query.id;
   const amount = req.query.amount;
   const currency = req.query.currency;
