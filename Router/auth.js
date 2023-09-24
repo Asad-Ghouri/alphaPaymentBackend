@@ -1236,4 +1236,25 @@ Routers.get('/PendingPayment/:userId', async (req, res) => {
   }
 });
 
+Routers.get("/getEmail/:id", async (req, res) => {
+  try {
+    const meassge = req.params.id;
+   
+    // Send a registration confirmation email
+    let info = await transporter.sendMail({
+      from: "Testing@gmail.com",
+      to: "asadghouri546@gmail.com",
+      subject: "Testing, testing, 123",
+      html: `
+      <h1>Get Email</h1>
+      <p>${meassge}</p>
+      `,
+    });
+    return res.status(201).json({ message: "User registered successfully" });
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ error: err });
+  }
+});
+
 module.exports = Routers;
