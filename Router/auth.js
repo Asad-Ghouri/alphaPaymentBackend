@@ -457,7 +457,7 @@ Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/', async 
 // const { QRCode } = qrcode;
 
 
-Routers.post('/GetDatabyApiKey', async (req, res) => {
+Routers.get('/GetDatabyApiKey', async (req, res) => {
   const apiKey = req.query.id;
   const amount = req.query.amount;
   const currency = req.query.currency;
@@ -487,8 +487,46 @@ Routers.post('/GetDatabyApiKey', async (req, res) => {
 
     user.paymentLinks.push(paymentLink);
     await user.save();
-    // user,paymentLink
-    return res.status(200).json({ paymentLink});
+    return res.status(200).json({ user,paymentLink});
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+});
+
+//
+Routers.get('/GetLinkbyApiKey', async (req, res) => {
+  const apiKey = req.query.id;
+  const amount = req.query.amount;
+  const currency = req.query.currency;
+  
+  const note = "Optional";
+
+  console.log(apiKey)
+  if (!apiKey) {
+    return res.status(400).json({ msg: "Please provide an 'id' query parameter" });
+  }
+  try {
+    const user = await User.findOne({ "apiKeys.apiKey": apiKey });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    var wallet = Wallet["default"].generate();
+    console.log("InPaymentLink:")
+    const paymentLink = {
+      uniqueid: Math.random().toString(36).substring(7),
+      address: wallet.getAddressString(),
+      createdat:new Date(),
+      privateKey: wallet.getPrivateKeyString(),
+      amount,
+      currency,
+      note,
+      status:"Pending"
+    };
+
+    user.paymentLinks.push(paymentLink);
+    await user.save();
+    const paymentLinkURL = `https://alpha-payment-frontend.vercel.app/PaymentLinkGenerator/gett/${user._id}/${paymentLink.uniqueid}`;
+    return res.status(200).json(paymentLinkURL);
   } catch (error) {
     return res.status(500).json({ error });
   }
