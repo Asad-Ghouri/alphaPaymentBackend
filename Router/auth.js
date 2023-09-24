@@ -457,7 +457,7 @@ Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/', async 
 // const { QRCode } = qrcode;
 
 
-Routers.get('/GetDatabyApiKey', async (req, res) => {
+Routers.post('/GetDatabyApiKey', async (req, res) => {
   const apiKey = req.query.id;
   const amount = req.query.amount;
   const currency = req.query.currency;
