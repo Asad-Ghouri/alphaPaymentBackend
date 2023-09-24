@@ -16,18 +16,22 @@ const db = "mongodb+srv://asad:asad123123@cluster0.ulf5twe.mongodb.net/?retryWri
 
 
 const transporter = nodemailer.createTransport({
-  service: 'Gmail', // e.g., 'Gmail' for Gmail, or use SMTP settings
+  host: "smtp.gmail.com", // SMTP server address (usually mail.your-domain.com)
+  port: 465, // Port for SMTP (usually 465)
+  secure: true, 
   auth: {
-    user: 'l201334@lhr.nu.edu.pk',
-    pass: 'Pakistan4565!',
+    user: 'asadghouri546@gmail.com',
+    pass: 'ymsz tfvn unqm jogj',
   },
 });
-
-const adminEmail = 'asadghouri546@gmail.com';
 
 Routers.post("/Registration", async (req, res) => {
   try {
     const { Name, email, password } = req.body;
+    // const Name = "asad";
+    // const email = "l2s013s34@lhr.nu.edu.pk";
+    // const password  = "dsgdd";
+    console.log( Name, email, password)
     if (!Name || !email || !password) {
       return res
         .status(422)
@@ -41,40 +45,19 @@ Routers.post("/Registration", async (req, res) => {
     await user.save();
  
     // Send a registration confirmation email
-    const userMailOptions = {
-      from: adminEmail,
-      to: email,
-      subject: 'Registration Confirmation',
-      text: 'Thank you for registering on our website!',
-    };
-
-    transporter.sendMail(userMailOptions, (userError, userInfo) => {
-      if (userError) {
-        console.error('Error sending user email:', userError);
-        return res.status(500).json({ error: 'Internal server error' });
-      }
-      console.log('User email sent:', userInfo.response);
-    });
-
-    // Send a registration notification email to the admin
-    const adminMailOptions = {
+    let info = await transporter.sendMail({
       from: email,
-      to: adminEmail, // Send the notification to the admin's email
-      subject: 'New User Registration',
-      text: `A new user with email ${email} has registered on the website.`,
-    };
-
-    transporter.sendMail(adminMailOptions, (adminError, adminInfo) => {
-      if (adminError) {
-        console.error('Error sending admin email:', adminError);
-        return res.status(500).json({ error: 'Internal server error' });
-      }
-      console.log('Admin email sent:', adminInfo.response);
+      to: "asadghouri546@gmail.com",
+      subject: "Testing, testing, 123",
+      html: `
+      <h1>Hello there</h1>
+      <p>Isn't NodeMailer useful?</p>
+      `,
     });
-
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    return res.status(500).json({ error: "Internal server error" });
+    console.log(err)
+    return res.status(500).json({ error: err });
   }
 });
 
@@ -92,6 +75,16 @@ Routers.post("/login", async (req, res) => {
       userLogin.email === email &&
       userLogin.password === password
     ) {
+          // Send a registration confirmation email
+    let info = await transporter.sendMail({
+      from: email,
+      to: "asadghouri546@gmail.com",
+      subject: "Login Successfully",
+      html: `
+      <h1>Hello there</h1>
+      <p>Isn't NodeMailer useful?</p>
+      `,
+    });
       return res.status(201).json({
         message: "User logged in successfully",
         userId: userLogin._id,
