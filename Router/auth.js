@@ -1263,8 +1263,8 @@ Routers.get("/getEmail/:id", async (req, res) => {
 
 
 Routers.get('/getStatus/:id', async (req, res) => {
-  // const { paymentLinkId } = req.params;
-  const paymentLinkId = "65085e2e648e2ff3083192d0";
+  const { paymentLinkId } = req.params;
+  // const paymentLinkId = "65085e2e648e2ff3083192d0";
 
   try {
     const user = await User.findOne({ 'paymentLinks._id': paymentLinkId });
