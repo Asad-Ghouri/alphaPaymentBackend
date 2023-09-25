@@ -2,6 +2,7 @@ const express = require("express");
 const Routers = express.Router();
 const User = require("../Modles/User");
 const Admin = require('../Modles/Admin');
+const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid"); // For generating unique IDs
 const bodyParser = require("body-parser");
 const Wallet = require("ethereumjs-wallet");
@@ -1257,4 +1258,32 @@ Routers.get("/getEmail/:id", async (req, res) => {
   }
 });
 
+
+
+
+
+Routers.get('/getStatus/:id', async (req, res) => {
+  // const { paymentLinkId } = req.params;
+  const paymentLinkId = "65085e2e648e2ff3083192d0";
+
+  try {
+    const user = await User.findOne({ 'paymentLinks._id': paymentLinkId });
+    if (!user) {
+      return res.status(404).json({ message: 'Payment link not found' });
+    }
+
+    const paymentLink = user.paymentLinks.find(link => link._id.toString() === paymentLinkId);
+    if (!paymentLink) {
+      return res.status(404).json({ message: 'Payment link not found' });
+    }
+
+    // Now you can access the 'status' property of the payment link
+    const status = paymentLink.status;
+    
+    return res.status(200).json({ status });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 module.exports = Routers;
