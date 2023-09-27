@@ -1270,12 +1270,12 @@ Routers.get('/getStatus/:id', async (req, res) => {
   // const paymentLinkId = "sdhn8b";
 
   try {
-    const user = await User.findOne({ 'paymentLinks.uniqueid': paymentLinkId });
+    const user = await User.findOne({ 'paymentLinks.OrderId': paymentLinkId });
     if (!user) {
       return res.status(404).json({ message: 'Payment link not found' });
     }
 
-    const paymentLink = user.paymentLinks.find(link => link.uniqueid.toString() === paymentLinkId);
+    const paymentLink = user.paymentLinks.find(link => link.OrderId.toString() === paymentLinkId);
     if (!paymentLink) {
       return res.status(404).json({ message: 'Payment link not found' });
     }
