@@ -1265,29 +1265,30 @@ Routers.post('/GetLinkbyApiKey', async (req, res) => {
   }
 });
 
-Routers.get('/getStatus/:id', async (req, res) => {
-  const { paymentLinkId } = req.params;
-  // const paymentLinkId = "sdhn8b";
-
-  try {
-    const user = await User.findOne({ 'paymentLinks.OrderId': paymentLinkId });
-    if (!user) {
-      return res.status(404).json({ message: 'Payment link not found' });
+Routers.post('/getStatus', async (req, res) => {
+  const apiKey = '0ce7f026-d6e2-4774-a7b8-c82a7096db37'; // Replace with the API key you want to search for
+  const orderId = '24'; // Replace with the Order ID you want to search for
+  
+  const user = await User.findOne({
+    $and: [
+      { "apiKeys.apiKey": apiKey }, // Match the user by API key
+      { "paymentLinks.OrderId": orderId } // Match the payment link with the given Order ID
+    ]
+  });
+  
+  if (user) {
+    // If a user with the given API key and matching Order ID is found
+    const paymentLink = user.paymentLinks.find(link => link.OrderId === orderId);
+    if (paymentLink) {
+      const paymentStatus = paymentLink.status;
+      console.log(`Payment Status: ${paymentStatus}`);
+    return res.status(200).json({paymentStatus});
+    } else {
+      console.log("Order ID not found in payment links.");
     }
-
-    const paymentLink = user.paymentLinks.find(link => link.OrderId.toString() === paymentLinkId);
-    if (!paymentLink) {
-      return res.status(404).json({ message: 'Payment link not found' });
-    }
-
-    // Now you can access the 'status' property of the payment link
-    const status = paymentLink.status;
-    
-    return res.status(200).json({ status });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
+  } else {
+    console.log("User with the provided API key not found.");
+  }  
 });
 
 module.exports = Routers;
