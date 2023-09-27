@@ -1286,7 +1286,7 @@ Routers.get('/getStatus/:id', async (req, res) => {
     return res.status(200).json({ status });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: paymentLinkId  });
+    return res.status(500).json({ message: 'internal server error'  });
   }
 });
 
