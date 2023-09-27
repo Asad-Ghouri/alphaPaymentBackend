@@ -1286,9 +1286,26 @@ Routers.post('/getStatus', async (req, res) => {
     } else {
       console.log("Order ID not found in payment links.");
     }
+<<<<<<< HEAD
   } else {
     console.log("User with the provided API key not found.");
   }  
+=======
+
+    const paymentLink = user.paymentLinks.find(link => link.OrderId.toString() === paymentLinkId);
+    if (!paymentLink) {
+      return res.status(404).json({ message: 'Payment link not found' });
+    }
+
+    // Now you can access the 'status' property of the payment link
+    const status = paymentLink.status;
+    
+    return res.status(200).json({ status });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'internal server error'  });
+  }
+>>>>>>> 7f59d2fb3bd9eaa6d250f12bc95ad092bd8e7adc
 });
 
 module.exports = Routers;
