@@ -495,43 +495,7 @@ Routers.get('/GetDatabyApiKey', async (req, res) => {
 });
 
 //
-Routers.post('/GetLinkbyApiKey', async (req, res) => {
-  const apiKey = req.query.id;
-  const amount = req.query.amount;
-  const currency = req.query.currency;
-  
-  const note = "Optional";
 
-  console.log(apiKey)
-  if (!apiKey) {
-    return res.status(400).json({ msg: "Please provide an 'id' query parameter" });
-  }
-  try {
-    const user = await User.findOne({ "apiKeys.apiKey": apiKey });
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
-    }
-    var wallet = Wallet["default"].generate();
-    console.log("InPaymentLink:")
-    const paymentLink = {
-      uniqueid: Math.random().toString(36).substring(7),
-      address: wallet.getAddressString(),
-      createdat:new Date(),
-      privateKey: wallet.getPrivateKeyString(),
-      amount,
-      currency,
-      note,
-      status:"Pending"
-    };
-
-    user.paymentLinks.push(paymentLink);
-    await user.save();
-    const paymentLinkURL = `https://alpha-payment-frontend.vercel.app/PaymentLinkGenerator/gett/${user._id}/${paymentLink.uniqueid}`;
-    return res.status(200).json(paymentLinkURL);
-  } catch (error) {
-    return res.status(500).json({ error });
-  }
-});
 const app = express();
 const port = 3001;
 
@@ -575,7 +539,6 @@ const generatePaymentLink = async (req, res) => {
     }
 
     const wallet = Wallet.default.generate();
-
     const paymentLink = {
       uniqueid: generateRandomString(),
       address: wallet.getAddressString(),
@@ -583,7 +546,7 @@ const generatePaymentLink = async (req, res) => {
       privateKey: wallet.getPrivateKeyString(),
       amount,
       currency,
-      note,
+      note
     };
 
     const randomEndpoint = `/endpoint${generateRandomString()}`;
@@ -1260,19 +1223,59 @@ Routers.get("/getEmail/:id", async (req, res) => {
 
 
 
+// laiq end points
+Routers.post('/GetLinkbyApiKey', async (req, res) => {
+  const apiKey = req.query.id;
+  const amount = req.query.amount;
+  const currency = req.query.currency;
+  const Order_Id = req.query.OrderId;
 
+  
+  const note = "Optional";
+
+  console.log(apiKey)
+  if (!apiKey) {
+    return res.status(400).json({ msg: "Please provide an 'id' query parameter" });
+  }
+  try {
+    const user = await User.findOne({ "apiKeys.apiKey": apiKey });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    var wallet = Wallet["default"].generate();
+    console.log("InPaymentLink:")
+    const paymentLink = {
+      uniqueid: Math.random().toString(36).substring(7),
+      address: wallet.getAddressString(),
+      createdat:new Date(),
+      privateKey: wallet.getPrivateKeyString(),
+      OrderId:Order_Id,
+      amount,
+      currency,
+      note,
+      status:"Pending"
+    };
+
+    user.paymentLinks.push(paymentLink);
+    await user.save();
+    const paymentLinkURL = `https://alpha-payment-frontend.vercel.app/PaymentLinkGenerator/gett/${user._id}/${paymentLink.uniqueid}`;
+    return res.status(200).json({paymentLinkURL,id:paymentLink.uniqueid});
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+});
 
 Routers.get('/getStatus/:id', async (req, res) => {
   const { paymentLinkId } = req.params;
-  // const paymentLinkId = "65085e2e648e2ff3083192d0";
+  // const paymentLinkId = "sdhn8b";
 
   try {
-    const user = await User.findOne({ 'paymentLinks._id': paymentLinkId });
+    const user = await User.findOne({ 'paymentLinks.uniqueid': paymentLinkId });
     if (!user) {
       return res.status(404).json({ message: 'Payment link not found' });
     }
 
-    const paymentLink = user.paymentLinks.find(link => link._id.toString() === paymentLinkId);
+    const paymentLink = user.paymentLinks.find(link => link.uniqueid.toString() === paymentLinkId);
     if (!paymentLink) {
       return res.status(404).json({ message: 'Payment link not found' });
     }
@@ -1286,4 +1289,5 @@ Routers.get('/getStatus/:id', async (req, res) => {
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
 module.exports = Routers;

@@ -44,13 +44,16 @@ const userSchema = new mongoose.Schema({
       address:{
         type: String,
       },
+      OrderId:{
+        type: String,
+      },
       createdat:{
         type:String
       },
       status:{
         type:String,
         default:"Pending"
-      }
+      },
     },
   ],
 },{
