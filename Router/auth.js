@@ -1266,8 +1266,8 @@ Routers.post('/GetLinkbyApiKey', async (req, res) => {
 });
 
 Routers.post('/getStatus', async (req, res) => {
-  const apiKey = '0ce7f026-d6e2-4774-a7b8-c82a7096db37'; // Replace with the API key you want to search for
-  const orderId = '24'; // Replace with the Order ID you want to search for
+  const apiKey =req.query.apikey; // Replace with the API key you want to search for
+  const orderId = req.query.orderId; // Replace with the Order ID you want to search for
   
   const user = await User.findOne({
     $and: [
