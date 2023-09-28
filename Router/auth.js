@@ -132,6 +132,48 @@ Routers.get(`/getUserdata/:id`, async (request, response) => {
   }
 });
 
+Routers.get(`/getUserdataPendingLinks/:id`, async (request, response) => {
+  try {
+    const user = await User.findById(request.params.id);
+
+    // Filter the user's paymentLinks to get only the ones with status "Done"
+    const donePaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "Pending");
+
+    if (donePaymentLinks.length === 0) {
+      return response.status(404).json({ msg: "No 'Done' payment links found for this user." });
+    }
+
+    response.status(200).json(donePaymentLinks);
+  } catch (err) {
+    console.error(err);
+    return response
+      .status(500)
+      .json({ msg: "Error while reading user's paymentLinks" });
+  }
+});
+
+
+Routers.get(`/getUserdataDoneLinks/:id`, async (request, response) => {
+  try {
+    const user = await User.findById(request.params.id);
+
+    // Filter the user's paymentLinks to get only the ones with status "Done"
+    const donePaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "done");
+
+    if (donePaymentLinks.length === 0) {
+      return response.status(404).json({ msg: "No 'Done' payment links found for this user." });
+    }
+
+    response.status(200).json(donePaymentLinks);
+  } catch (err) {
+    console.error(err);
+    return response
+      .status(500)
+      .json({ msg: "Error while reading user's paymentLinks" });
+  }
+});
+
+
 Routers.get(`/PaymentLinkGenerator/gett/:id/:amd`, async (request, response) => {
   try {
     console.log(request.params.amd)
