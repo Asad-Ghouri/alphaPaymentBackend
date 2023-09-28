@@ -46,15 +46,15 @@ Routers.post("/Registration", async (req, res) => {
     await user.save();
  
     // Send a registration confirmation email
-    let info = await transporter.sendMail({
-      from: email,
-      to: "asadghouri546@gmail.com",
-      subject: `${email} Sign Up`,
-      html: `
-      <h1>Hello there</h1>
-      <p>${name} is Sign Up</p>
-      `,
-    });
+    // let info = await transporter.sendMail({
+    //   from: email,
+    //   to: "asadghouri546@gmail.com",
+    //   subject: `${email} Sign Up`,
+    //   html: `
+    //   <h1>Hello there</h1>
+    //   <p>${name} is Sign Up</p>
+    //   `,
+    // });
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     console.log(err)
@@ -77,15 +77,15 @@ Routers.post("/login", async (req, res) => {
       userLogin.password === password
     ) {
           // Send a registration confirmation email
-    let info = await transporter.sendMail({
-      from: email,
-      to: "asadghouri546@gmail.com",
-      subject: `${email} Login Successfully`,
-      html: `
-      <h1>Hello there</h1>
-      <p>${email} Login Successfully</p>
-      `,
-    });
+    // let info = await transporter.sendMail({
+    //   from: email,
+    //   to: "asadghouri546@gmail.com",
+    //   subject: `${email} Login Successfully`,
+    //   html: `
+    //   <h1>Hello there</h1>
+    //   <p>${email} Login Successfully</p>
+    //   `,
+    // });
       return res.status(201).json({
         message: "User logged in successfully",
         userId: userLogin._id,
