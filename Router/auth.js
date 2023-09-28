@@ -792,11 +792,16 @@ Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
         $unwind: '$paymentLinks', // Unwind the paymentLinks array
       },
       {
+        $match: {
+          'paymentLinks.status': 'Pending', // Filter by status: done
+        },
+      },
+      {
         $group: {
           _id: '$_id',
           // email: { $first: '$email' }, // Include email
-          paymentLinks: { $push: '$paymentLinks' }, // Include payment links
-          // totalPaymentLinks: { $sum: 1 }, // Count the documents
+          donePaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
+          // totalDonePaymentLinks: { $sum: 1 }, // Count the documents
         },
       },
       {
