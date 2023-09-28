@@ -800,7 +800,7 @@ Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
         $group: {
           _id: '$_id',
           // email: { $first: '$email' }, // Include email
-          donePaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
+          pendingPaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
           // totalDonePaymentLinks: { $sum: 1 }, // Count the documents
         },
       },
@@ -1064,7 +1064,7 @@ Routers.put('/admin/commissionRate', async (req, res) => {
 // Endpoint to get the commission rate by admin
 Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
  const userId = req.params.userId;
-    const admin = await admins.findById(userId); 
+    const admin = await Admin.findById(userId); 
     
   if(!admin){
     res.status(500).json({ message: 'Server Error' });
