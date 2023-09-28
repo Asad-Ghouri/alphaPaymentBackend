@@ -1224,72 +1224,100 @@ Routers.get("/getEmail/:id", async (req, res) => {
 
 
 // laiq end points
+const STATUS_PENDING = "Pending";
+
+// Helper function to find a user by API key
+async function findUserByApiKey(apiKey) {
+  try {
+    const user = await User.findOne({ "apiKeys.apiKey": apiKey });
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Helper function to generate a payment link
+async function generatePaymentLink_with_Order_ID(user, amount, currency, OrderId, note) {
+  try {
+    const wallet = Wallet["default"].generate();
+    const paymentLink = {
+      uniqueid: Math.random().toString(36).substring(7),
+      address: wallet.getAddressString(),
+      createdat: new Date(),
+      privateKey: wallet.getPrivateKeyString(),
+      OrderId,
+      amount,
+      currency,
+      note: note || "Optional",
+      status: STATUS_PENDING,
+    };
+    user.paymentLinks.push(paymentLink);
+    await user.save();
+    return paymentLink;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Endpoint for generating payment links
 Routers.post('/GetLinkbyApiKey', async (req, res) => {
   const apiKey = req.query.id;
   const amount = req.query.amount;
   const currency = req.query.currency;
-  const Order_Id = req.query.OrderId;
-
-  
+  const OrderId = req.query.OrderId;
   const note = "Optional";
 
-  console.log(apiKey)
-  if (!apiKey) {
-    return res.status(400).json({ msg: "Please provide an 'id' query parameter" });
-  }
+  console.log(apiKey);
+
   try {
-    const user = await User.findOne({ "apiKeys.apiKey": apiKey });
+    if (!apiKey) {
+      return res.status(400).json({ msg: "Please provide an 'id' query parameter" });
+    }
+
+    const user = await findUserByApiKey(apiKey);
+    
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
-    var wallet = Wallet["default"].generate();
-    console.log("InPaymentLink:")
-    const paymentLink = {
-      uniqueid: Math.random().toString(36).substring(7),
-      address: wallet.getAddressString(),
-      createdat:new Date(),
-      privateKey: wallet.getPrivateKeyString(),
-      OrderId:Order_Id,
-      amount,
-      currency,
-      note,
-      status:"Pending"
-    };
 
-    user.paymentLinks.push(paymentLink);
-    await user.save();
+    const paymentLink = await generatePaymentLink_with_Order_ID(user, amount, currency, OrderId, note);
     const paymentLinkURL = `https://alpha-payment-frontend.vercel.app/PaymentLinkGenerator/gett/${user._id}/${paymentLink.uniqueid}`;
-    return res.status(200).json({paymentLinkURL,id:paymentLink.uniqueid});
+    
+    return res.status(200).json({ paymentLinkURL, id: paymentLink.uniqueid });
   } catch (error) {
-    return res.status(500).json({ error });
+    return res.status(500).json({ error: error.message });
   }
 });
 
+// Endpoint for checking payment status
 Routers.post('/getStatus', async (req, res) => {
-  const apiKey =req.query.apikey; // Replace with the API key you want to search for
-  const orderId = req.query.orderId; // Replace with the Order ID you want to search for
-  
-  const user = await User.findOne({
-    $and: [
-      { "apiKeys.apiKey": apiKey }, // Match the user by API key
-      { "paymentLinks.OrderId": orderId } // Match the payment link with the given Order ID
-    ]
-  });
-  
-  if (user) {
-    // If a user with the given API key and matching Order ID is found
+  const apiKey = req.query.apikey;
+  const orderId = req.query.orderId;
+
+  try {
+    if (!apiKey || !orderId) {
+      return res.status(400).json({ msg: "Please provide valid 'apikey' and 'orderId' query parameters" });
+    }
+
+    const user = await findUserByApiKey(apiKey);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User with the provided API key not found" });
+    }
+
     const paymentLink = user.paymentLinks.find(link => link.OrderId === orderId);
+
     if (paymentLink) {
       const paymentStatus = paymentLink.status;
       console.log(`Payment Status: ${paymentStatus}`);
-    return res.status(200).json({paymentStatus});
+      return res.status(200).json({ paymentStatus });
     } else {
       console.log("Order ID not found in payment links.");
+      return res.status(404).json({ msg: "Order ID not found in payment links" });
     }
-  } else {
-    console.log("User with the provided API key not found.");
-  }  
-
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = Routers;
