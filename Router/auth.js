@@ -49,10 +49,10 @@ Routers.post("/Registration", async (req, res) => {
     let info = await transporter.sendMail({
       from: email,
       to: "asadghouri546@gmail.com",
-      subject: "Testing, testing, 123",
+      subject: `${Name} sign up`,
       html: `
       <h1>Hello there</h1>
-      <p>Isn't NodeMailer useful?</p>
+      <p>${Name} is sign up</p>
       `,
     });
     return res.status(201).json({ message: "User registered successfully" });
@@ -83,7 +83,7 @@ Routers.post("/login", async (req, res) => {
       subject: "Login Successfully",
       html: `
       <h1>Hello there</h1>
-      <p>Isn't NodeMailer useful?</p>
+      <p>${email} is sign in</p>
       `,
     });
       return res.status(201).json({
@@ -666,43 +666,23 @@ Routers.get('/userCount/:id', async (req, res) => {
   }
 });
 
-// Serve static HTML file with QR code for payment link
-// app.get("/payment/:id", (req, res) => {
-//   const { id } = req.params;
-//   const paymentLink = paymentLinks.find((link) => link.id === id);
-
-//   if (!paymentLink) {
-//     console.log("Payment Link not found.");
-//     return res.status(404).json({ error: "Payment link not found." });
-//   }
-
-//   // Here, you can use a QR code generation library (e.g., qr-image) to generate a QR code with the payment link.
-//   // Then, serve the HTML page with the QR code.
-//   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-//     paymentLink.paymentLink
-//   )}`;
-//   const qrCodeHtml = `<html><body><img src="${qrCodeUrl}" alt="Payment QR Code"></body></html>`;
-
-//   console.log("Served Payment QR Code:", paymentLink);
-//   res.send(qrCodeHtml);
-// });
 
 
 // -------admin dashboard------
+// Route to authenticate admin login
 Routers.post("/Adminlogin", async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res
         .status(400)
         .json({ error: "Please fill all the fields properly" });
     }
-    const userLogin = await Admin.findOne({ email: email });
-    if (
-      userLogin &&
-      userLogin.email === email &&
-      userLogin.password === password
-    ) {
+
+    const userLogin = await Admin.findOne({ email: email, password: password });
+
+    if (userLogin) {
       return res.status(201).json({
         message: "User logged in successfully",
         userId: userLogin._id,
@@ -711,14 +691,16 @@ Routers.post("/Adminlogin", async (req, res) => {
       return res.status(400).json({ error: "Invalid Credentials" });
     }
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// Route to get the total count of users
 Routers.get('/countUser', async (req, res) => {
   try {
     const userCount = await User.countDocuments();
-    console.log("Total Documents are ",userCount)
+    console.log("Total Documents are ", userCount);
     res.json({ totalUsers: userCount });
   } catch (error) {
     console.error(error);
@@ -726,6 +708,7 @@ Routers.get('/countUser', async (req, res) => {
   }
 });
 
+// Route to get the total count of payment links
 Routers.get('/CountpaymentLinks', async (req, res) => {
   try {
     const pipeline = [
@@ -739,7 +722,6 @@ Routers.get('/CountpaymentLinks', async (req, res) => {
 
     const result = await User.aggregate(pipeline);
 
-    // Extract the totalPaymentLinks value from the result
     const totalPaymentLinks = result[0]?.totalPaymentLinks || 0;
 
     res.json({ totalPaymentLinks });
@@ -747,32 +729,30 @@ Routers.get('/CountpaymentLinks', async (req, res) => {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
   }
-
 });
 
-
+// Route to get the total count of pending payment links
 Routers.get('/PendingPaymentLinks', async (req, res) => {
   try {
     const pipeline = [
       {
-        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+        $unwind: '$paymentLinks',
       },
       {
         $match: {
-          'paymentLinks.status': 'Pending', // Filter by status: pending
+          'paymentLinks.status': 'Pending',
         },
       },
       {
         $group: {
           _id: null,
-          totalPendingPaymentLinks: { $sum: 1 }, // Count the documents
+          totalPendingPaymentLinks: { $sum: 1 },
         },
       },
     ];
 
     const result = await User.aggregate(pipeline);
 
-    // Extract the totalPendingPaymentLinks value from the result
     const totalPendingPaymentLinks = result[0]?.totalPendingPaymentLinks || 0;
 
     res.json({ totalPendingPaymentLinks });
@@ -783,24 +763,21 @@ Routers.get('/PendingPaymentLinks', async (req, res) => {
 });
 
 
+
+
+
+
 // Route to get the total payment links for each user
 Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
   try {
     const pipeline = [
       {
-        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+        $unwind: '$paymentLinks',
       },
       {
         $group: {
           _id: '$_id',
-          // email: { $first: '$email' }, // Include email
-          paymentLinks: { $push: '$paymentLinks' }, // Include payment links
-          // totalPaymentLinks: { $sum: 1 }, // Count the documents
-        },
-      },
-      {
-        $project: {
-          _id: 0, // Exclude _id
+          paymentLinks: { $push: '$paymentLinks' },
         },
       },
     ];
@@ -812,29 +789,29 @@ Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 // Route to get the total count of payment links with status "done" across all users
 Routers.get('/DonePaymentLinks', async (req, res) => {
   try {
     const pipeline = [
       {
-        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+        $unwind: '$paymentLinks',
       },
       {
         $match: {
-          'paymentLinks.status': 'done', // Filter by status: done
+          'paymentLinks.status': 'done',
         },
       },
       {
         $group: {
           _id: null,
-          totalDonePaymentLinks: { $sum: 1 }, // Count the documents
+          totalDonePaymentLinks: { $sum: 1 },
         },
       },
     ];
 
     const result = await User.aggregate(pipeline);
 
-    // Extract the totalDonePaymentLinks value from the result
     const totalDonePaymentLinks = result[0]?.totalDonePaymentLinks || 0;
 
     res.json({ totalDonePaymentLinks });
@@ -849,24 +826,17 @@ Routers.get('/DonePaymentLinksDetail', async (req, res) => {
   try {
     const pipeline = [
       {
-        $unwind: '$paymentLinks', // Unwind the paymentLinks array
+        $unwind: '$paymentLinks',
       },
       {
         $match: {
-          'paymentLinks.status': 'done', // Filter by status: done
+          'paymentLinks.status': 'done',
         },
       },
       {
         $group: {
           _id: '$_id',
-          // email: { $first: '$email' }, // Include email
-          donePaymentLinks: { $push: '$paymentLinks' }, // Include "done" payment links
-          // totalDonePaymentLinks: { $sum: 1 }, // Count the documents
-        },
-      },
-      {
-        $project: {
-          _id: 0, // Exclude _id
+          donePaymentLinks: { $push: '$paymentLinks' },
         },
       },
     ];
@@ -879,9 +849,10 @@ Routers.get('/DonePaymentLinksDetail', async (req, res) => {
   }
 });
 
+// Route to get a list of users with email and password fields only
 Routers.get('/AllUsers', async (req, res) => {
   try {
-    const users = await User.find({}, 'email password'); // Project only email and password fields
+    const users = await User.find({}, 'email password');
     res.json(users);
   } catch (err) {
     console.error(err);
@@ -889,14 +860,16 @@ Routers.get('/AllUsers', async (req, res) => {
   }
 });
 
+// Route to get a specific user by ID
 Routers.get('/SpecificUser/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    console.log("user id is ",userId)
-    const user = await User.findById(userId); // Find a user by ID
+    const user = await User.findById(userId);
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
     res.json(user);
   } catch (err) {
     console.error(err);
@@ -904,15 +877,36 @@ Routers.get('/SpecificUser/:userId', async (req, res) => {
   }
 });
 
+
+
+
+
+
+
+
+// Common error handling function
+function handleErrors(res, error) {
+  console.error(error);
+  res.status(500).json({ message: 'Server Error' });
+}
+
+// Helper function to find a user by ID
+async function findUserById(userId, modelName, res) {
+  try {
+    const user = await mongoose.model(modelName).findById(userId);
+    return user;
+  } catch (error) {
+    handleErrors(res, error);
+    return null;
+  }
+}
+
+// PUT endpoint to edit user data by ID
 Routers.put('/EditUsers/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
-    
-    const updatedUserData = req.body; // New user data to be updated
+    const updatedUserData = req.body;
 
-    console.log("requested data is ",updatedUserData)
-
-    // Update user information in the database
     const updatedUser = await User.findByIdAndUpdate(userId, updatedUserData, { new: true });
 
     if (!updatedUser) {
@@ -920,21 +914,18 @@ Routers.put('/EditUsers/:userId', async (req, res) => {
     }
 
     res.json(updatedUser);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-// Edit API key by user ID and API key ID
+// PUT endpoint to edit API key by user ID and API key ID
 Routers.put('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
     const userId = req.params.userId;
     const apiKeyId = req.params.apiKeyId;
-    // {apiKey:"c0710b91-5838-4656-92ed-ba9f79b4f666"}
-    const updatedApiKeyData = req.body; // New API key data to be updated
+    const updatedApiKeyData = req.body;
 
-    // Find the user by ID and update the API key with the specified ID
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, 'apiKeys._id': apiKeyId },
       { $set: { 'apiKeys.$': updatedApiKeyData } },
@@ -946,20 +937,18 @@ Routers.put('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
     }
 
     res.json(updatedUser);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-// Edit payment link by user ID and payment link ID
+// PUT endpoint to edit payment link by user ID and payment link ID
 Routers.put('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
   try {
     const userId = req.params.userId;
     const paymentLinkId = req.params.paymentLinkId;
-    const updatedPaymentLinkData = req.body; // New payment link data to be updated
-    // {uniqueid:"asad"}
-    // Find the user by ID and update the payment link with the specified ID
+    const updatedPaymentLinkData = req.body;
+
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, 'paymentLinks._id': paymentLinkId },
       { $set: { 'paymentLinks.$': updatedPaymentLinkData } },
@@ -971,18 +960,16 @@ Routers.put('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) =>
     }
 
     res.json(updatedUser);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-
+// DELETE endpoint to delete user by ID
 Routers.delete('/DeleteUser/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    // Delete user information from the database
     const deletedUser = await User.findByIdAndDelete(userId);
 
     if (!deletedUser) {
@@ -990,19 +977,17 @@ Routers.delete('/DeleteUser/:userId', async (req, res) => {
     }
 
     res.json({ message: 'User deleted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-// Delete API key by user ID and API key ID
+// DELETE endpoint to delete API key by user ID and API key ID
 Routers.delete('/DeleteUserApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
     const userId = req.params.userId;
     const apiKeyId = req.params.apiKeyId;
 
-    // Find the user by ID and remove the API key with the specified ID
     const updatedUser = await User.findByIdAndUpdate(userId, {
       $pull: { apiKeys: { _id: apiKeyId } },
     });
@@ -1012,19 +997,17 @@ Routers.delete('/DeleteUserApiKey/:userId/:apiKeyId', async (req, res) => {
     }
 
     res.json({ message: 'API key deleted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-// Delete payment link by user ID and payment link ID
-Routers.delete('/DeleteUserpaymentLinks/:userId/:paymentLinkId', async (req, res) => {
+// DELETE endpoint to delete payment link by user ID and payment link ID
+Routers.delete('/DeleteUserPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
   try {
     const userId = req.params.userId;
     const paymentLinkId = req.params.paymentLinkId;
 
-    // Find the user by ID and remove the payment link with the specified ID
     const updatedUser = await User.findByIdAndUpdate(userId, {
       $pull: { paymentLinks: { _id: paymentLinkId } },
     });
@@ -1034,138 +1017,118 @@ Routers.delete('/DeleteUserpaymentLinks/:userId/:paymentLinkId', async (req, res
     }
 
     res.json({ message: 'Payment link deleted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-// Endpoint to set the commission rate by admin
+// PUT endpoint to set the commission rate by admin
 Routers.put('/admin/commissionRate', async (req, res) => {
   try {
     const { commissionRate } = req.body;
 
-    // Update the commission rate in the admin schema
     await Admin.updateOne({}, { commissionRate });
     res.json({ message: 'Commission rate updated successfully' });
-  } 
-  catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-// Endpoint to get the commission rate by admin
+// GET endpoint to get the commission rate by admin
 Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
- const userId = req.params.userId;
-    const admin = await admins.findById(userId); 
-    
-  if(!admin){
-    res.status(500).json({ message: 'Server Error' });
-  }
-  res.json(admin);
-  
-});
-
-// Edit API key by user ID and API key ID
-Routers.get('/getUsersApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
-    const { userId, apiKeyId } = req.params;
+    const userId = req.params.userId;
+    const admin = await Admin.findById(userId);
 
-    console.log(userId, apiKeyId)
-    // Find the user by ID
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
     }
 
-    // Find the API key by API key ID
-    const apiKey = user.apiKeys.find((key) => key._id.toString() === apiKeyId);
-
-    if (!apiKey) {
-      return res.status(404).json({ message: 'API key not found for the user' });
-    }
-
-    res.json(apiKey);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
-  }
-
-});
-
-// Edit payment link by user ID and payment link ID
-Routers.get('/getUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
-  try {
-    const { userId, paymentLinkId } = req.params;
-
-    // Find the user by ID
-    console.log(userId, paymentLinkId)
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Find the payment link by payment link ID
-    const paymentLink = user.paymentLinks.find(
-      (link) => link._id.toString() === paymentLinkId
-    );
-
-    if (!paymentLink) {
-      return res
-        .status(404)
-        .json({ message: 'Payment link not found for the user' });
-    }
-
-    res.json(paymentLink);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+    res.json(admin);
+  } catch (error) {
+    handleErrors(res, error);
   }
 });
 
-Routers.get("/AdminInfo/:id", async (req, res) => {
+
+
+
+
+
+
+
+// Helper function to find a user by ID and return a JSON response
+async function findUserByIdAndRespond(userId, res, modelName = 'User') {
   try {
-    const  userId = req.params.id;
-    // Find the user by ID
-    console.log(userId)
-
-    const user = await Admin.findById(userId);
-
+    const user = await mongoose.model(modelName).findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: `${modelName} not found` });
     }
-
     res.json(user);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
   }
+}
 
- 
+// Endpoint to get API key by user ID and API key ID
+Routers.get('/getUsersApiKey/:userId/:apiKeyId', async (req, res) => {
+  const { userId, apiKeyId } = req.params;
+  console.log(userId, apiKeyId);
+  findUserByIdAndRespond(userId, res, 'User');
 });
 
+// Endpoint to get payment link by user ID and payment link ID
+Routers.get('/getUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
+  const { userId, paymentLinkId } = req.params;
+  console.log(userId, paymentLinkId);
+  findUserByIdAndRespond(userId, res, 'User');
+});
+
+// Endpoint to get admin information by ID
+Routers.get("/AdminInfo/:id", async (req, res) => {
+  const userId = req.params.id;
+  console.log(userId);
+  findUserByIdAndRespond(userId, res, 'Admin');
+});
+
+
+
+
+
+
+// Helper function to find a user by ID
+async function findUserById(userId) {
+  try {
+    const user = await User.findById(userId);
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Helper function to calculate the total price of payment links with a specific status
+function calculateTotalPrice(paymentLinks, status) {
+  return paymentLinks.reduce((total, link) => {
+    if (link.status === status) {
+      return total + parseFloat(link.amount); // Assuming 'amount' is a string, convert it to a float
+    }
+    return total;
+  }, 0);
+}
+
+// Endpoint for getting the total price of "done" payments
 Routers.get('/DonePayment/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find the user by ID
-    const user = await User.findById(userId);
+    const user = await findUserById(userId);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Filter payment links with status "done" and calculate the total price
-    const totalDonePrice = user.paymentLinks.reduce((total, link) => {
-      if (link.status === 'done') {
-        return total + parseFloat(link.amount); // Assuming 'amount' is a string, convert it to a float
-      }
-      return total;
-    }, 0);
+    const totalDonePrice = calculateTotalPrice(user.paymentLinks, 'done');
 
     res.json({ totalDonePrice });
   } catch (err) {
@@ -1174,52 +1137,52 @@ Routers.get('/DonePayment/:userId', async (req, res) => {
   }
 });
 
+// Endpoint for getting the total price of "Pending" payments
 Routers.get('/PendingPayment/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find the user by ID
-    const user = await User.findById(userId);
+    const user = await findUserById(userId);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Filter payment links with status "done" and calculate the total price
-    const totalPeningPrice = user.paymentLinks.reduce((total, link) => {
-      if (link.status === 'Pending') {
-        return total + parseFloat(link.amount); // Assuming 'amount' is a string, convert it to a float
-      }
-      return total;
-    }, 0);
+    const totalPendingPrice = calculateTotalPrice(user.paymentLinks, 'Pending');
 
-    res.json({ totalPeningPrice });
+    res.json({ totalPendingPrice });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server Error' });
   }
 });
 
+// Endpoint for sending an email
 Routers.get("/getEmail/:id", async (req, res) => {
   try {
-    const meassge = req.params.id;
-   
-    // Send a registration confirmation email
+    const message = req.params.id;
+
+    // Send an email
     let info = await transporter.sendMail({
-      from: "Testing@gmail.com",
+      from: "",
       to: "asadghouri546@gmail.com",
       subject: "Testing, testing, 123",
       html: `
       <h1>Get Email</h1>
-      <p>${meassge}</p>
+      <p>${message}</p>
       `,
     });
-    return res.status(201).json({ message: "User registered successfully" });
+
+    return res.status(201).json({ message: "Email sent successfully" });
   } catch (err) {
-    console.log(err)
-    return res.status(500).json({ error: err });
+    console.error(err);
+    return res.status(500).json({ message: 'Server Error' });
   }
 });
+
+
+
+
 
 
 
