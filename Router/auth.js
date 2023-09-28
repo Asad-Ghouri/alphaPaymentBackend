@@ -28,12 +28,12 @@ const transporter = nodemailer.createTransport({
 
 Routers.post("/Registration", async (req, res) => {
   try {
-    const { Name, email, password } = req.body;
+    const { name, email, password } = req.body;
     // const Name = "asad";
     // const email = "l2s013s34@lhr.nu.edu.pk";
     // const password  = "dsgdd";
-    console.log( Name, email, password)
-    if (!Name || !email || !password) {
+    console.log( name, email, password)
+    if (!name || !email || !password) {
       return res
         .status(422)
         .json({ error: "Please fill all the fields properly" });
@@ -42,17 +42,17 @@ Routers.post("/Registration", async (req, res) => {
     if (userExist) {
       return res.status(422).json({ message: "Email already exists" });
     }
-    const user = new User({ Name, email, password });
+    const user = new User({ name, email, password });
     await user.save();
  
     // Send a registration confirmation email
     let info = await transporter.sendMail({
       from: email,
       to: "asadghouri546@gmail.com",
-      subject: `${Name} sign up`,
+      subject: `${name} sign up`,
       html: `
       <h1>Hello there</h1>
-      <p>${Name} is sign up</p>
+      <p>${name} is sign up</p>
       `,
     });
     return res.status(201).json({ message: "User registered successfully" });
