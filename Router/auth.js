@@ -89,6 +89,7 @@ Routers.post("/login", async (req, res) => {
       return res.status(201).json({
         message: "User logged in successfully",
         userId: userLogin._id,
+        name:userLogin.name,
       });
     } else {
       return res.status(400).json({ error: "Invalid Credentials" });
