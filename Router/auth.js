@@ -1345,9 +1345,9 @@ Routers.post('/getStatus', async (req, res) => {
   const orderId = req.query.orderId;
 
   try {
-    if (!apiKey || !orderId) {
-      return res.status(400).json({ msg: "Please provide valid 'apikey' and 'orderId' query parameters" });
-    }
+    // if (!apiKey || !orderId) {
+    //   return res.status(400).json({ msg: "Please provide valid 'apikey' and 'orderId' query parameters" });
+    // }
 
     const user = await findUserByApiKey(apiKey);
 
