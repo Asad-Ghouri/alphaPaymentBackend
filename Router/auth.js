@@ -140,7 +140,7 @@ Routers.get(`/getUserdataPendingLinks/:id`, async (request, response) => {
     const donePaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "Pending");
 
     if (donePaymentLinks.length === 0) {
-      return response.status(404).json({ msg: "No 'Done' payment links found for this user." });
+      return response.status(200).json({ msg: "No Pending payment links found for this user." });
     }
 
     response.status(200).json(donePaymentLinks);
@@ -161,7 +161,7 @@ Routers.get(`/getUserdataDoneLinks/:id`, async (request, response) => {
     const donePaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "done");
 
     if (donePaymentLinks.length === 0) {
-      return response.status(404).json({ msg: "No 'Done' payment links found for this user." });
+      return response.status(200).json({ msg: "No Done payment links found for this user." });
     }
 
     response.status(200).json(donePaymentLinks);
