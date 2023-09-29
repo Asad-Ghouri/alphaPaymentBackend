@@ -449,12 +449,13 @@ web3.eth.getBalance(senderAddress)
 
                                    
 
-Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/', async (request, response) => {
+Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/:bnbvalue', async (request, response) => {
   try {
     const userId = request.params.id;
     const uniqueId = request.params.amd;
     const address = request.params.address;
-    const amount = request.params.amount;
+    const amount1 = request.params.amount;
+    const amount = request.params.bnbvalue;
     const privateKey = request.params.privateKey;
     console.log("check in bankend values ",address,amount,privateKey);
     const quicknodeUrl = "https://alpha-quaint-night.bsc-testnet.discover.quiknode.pro/3bae5ff989475ed8f9507d97c304b336e837119e/";//bnd
