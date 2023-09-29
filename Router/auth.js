@@ -1346,7 +1346,7 @@ Routers.post('/getStatus', async (req, res) => {
 
   try {
     if (!apiKey || !orderId) {
-      return res.status(400).json({ msg: "Please provide valid 'apikey' and 'orderId' query parameters",
+      return res.status(200).json({ msg: "Please provide valid 'apikey' and 'orderId' query parameters",
                                   apiKey : apiKey, orderId : orderId});
     }
 
