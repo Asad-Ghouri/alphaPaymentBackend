@@ -137,13 +137,13 @@ Routers.get(`/getUserdataPendingLinks/:id`, async (request, response) => {
     const user = await User.findById(request.params.id);
 
     // Filter the user's paymentLinks to get only the ones with status "Done"
-    const donePaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "Pending");
+    const pendingPaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "Pending");
 
     // if (donePaymentLinks.length === 0) {
     //   return response.status(200).json({ msg: "No Pending payment links found for this user." });
     // }
 
-    response.status(200).json(donePaymentLinks);
+    response.status(200).json(pendingPaymentLinks);
   } catch (err) {
     console.error(err);
     return response
