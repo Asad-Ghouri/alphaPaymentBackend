@@ -153,23 +153,28 @@ Routers.get(`/getUserdataPendingLinks/:id`, async (request, response) => {
 });
 
 
-Routers.get(`/getUserdataDoneLinks/:id`, async (request, response) => {
+Routers.get(`/getUserdataDoneLinks/:id`, async (req, res) => {
   try {
-    const user = await User.findById(request.params.id);
+    const userId = req.params.id;
 
-    // Filter the user's paymentLinks to get only the ones with status "Done"
-    const donePaymentLinks = user.paymentLinks.filter((paymentLink) => paymentLink.status === "done");
+    // Use findById and project only the paymentLinks field
+    const user = await User.findById(userId, 'paymentLinks');
 
-    if (donePaymentLinks.length === 0) {
-      return response.status(200).json({ msg: "No Done payment links found for this user." });
+    if (!user) {
+      return res.status(404).json({ msg: "User not found." });
     }
 
-    response.status(200).json(donePaymentLinks);
+    // Filter the user's paymentLinks to get only the ones with status "done"
+    const donePaymentLinks = user.paymentLinks.filter(paymentLink => paymentLink.status === "done");
+
+    if (donePaymentLinks.length === 0) {
+      return res.status(200).json({ msg: "No Done payment links found for this user." });
+    }
+
+    res.status(200).json(donePaymentLinks);
   } catch (err) {
     console.error(err);
-    return response
-      .status(500)
-      .json({ msg: "Error while reading user's paymentLinks" });
+    res.status(500).json({ msg: "Error while reading user's paymentLinks" });
   }
 });
 
