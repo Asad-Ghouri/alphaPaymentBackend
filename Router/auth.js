@@ -15,6 +15,48 @@ const { Worker, isMainThread, parentPort, workerData } = require('worker_threads
 const nodemailer = require('nodemailer');
 const db = "mongodb+srv://asad:asad123123@cluster0.ulf5twe.mongodb.net/?retryWrites=true&w=majority";
 
+const stripe = require('stripe')("sk_test_51ODucNSBUBnZdF2vZ4rTegts3FCMI9IczAYi4IU9kNOhtFrO7PN2wWAsvUTVUpfis2xmwBZTdSXzOWU69idYfoEi00eTy3Le68");
+
+
+Routers.post("/stripe", async (req, res) => {
+  try {
+      // Debug logging
+      console.log("Received request with body:", req.body);
+
+      // De-structure the priceId from the request body
+      const { priceId } = req.body;
+
+      // Now, check if the priceId is not undefined or null
+      if(!priceId) {
+          console.error("Price ID not provided in the request body");
+          return res.status(400).send({error: 'Price ID not provided in the request body'});
+      }
+
+      // Debug logging
+      console.log(`Creating stripe checkout session with priceId: ${priceId}`);
+
+      const session = await stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          line_items: [
+              {
+                  price: priceId,
+                  quantity: 1,
+              },
+          ],
+          mode: 'subscription',
+          success_url: 'http://localhost:3000/dashboard?message=authenticate', // change it for production
+          cancel_url: 'http://localhost:3000/cancel', // change it for production
+      });
+
+      console.log(`Stripe session created with ID: ${session.id}`);
+
+      return res.json({ id: session.id });
+
+  } catch (error) {
+      console.error("An error occurred:", error);
+      return res.status(500).send({error: 'An error occurred while creating the checkout session.'});
+  }
+});
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com", // SMTP server address (usually mail.your-domain.com)
