@@ -44,8 +44,8 @@ Routers.post("/stripe", async (req, res) => {
               },
           ],
           mode: 'subscription',
-          success_url: 'http://localhost:3000/dashboard?message=authenticate', // change it for production
-          cancel_url: 'http://localhost:3000/cancel', // change it for production
+          success_url: 'https://www.easybookerp.com/dashboard?message=authenticate', // change it for production
+          cancel_url: 'https://www.easybookerp.com/sign-in', // change it for production
       });
 
       console.log(`Stripe session created with ID: ${session.id}`);
