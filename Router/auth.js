@@ -44,8 +44,8 @@ Routers.post("/stripe", async (req, res) => {
               },
           ],
           mode: 'subscription',
-          success_url: 'https://www.easybookerp.com/dashboard?message=authenticate', // change it for production
-          cancel_url: 'https://www.easybookerp.com/sign-in', // change it for production
+          success_url: 'http://localhost:3000/dashboard?message=authenticate', // change it for production
+          cancel_url: 'http://localhost:3000/sign-in', // change it for production
       });
 
       console.log(`Stripe session created with ID: ${session.id}`);
@@ -66,6 +66,25 @@ const transporter = nodemailer.createTransport({
     user: 'asadghouri546@gmail.com',
     pass: 'ymsz tfvn unqm jogj',
   },
+});
+
+
+Routers.post('/send-email', (req, res) => {
+  const { to } = req.body;
+
+  const mailOptions = {
+    from: 'asadghouri546@gmail.com', // Sender email address
+    to: to, // Receiver email address
+    subject: "for testing",
+    text: "hello",
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).send(error.toString());
+    }
+    res.status(200).send('Email sent: ' + info.response);
+  });
 });
 
 Routers.post("/Registration", async (req, res) => {
