@@ -70,13 +70,31 @@ const transporter = nodemailer.createTransport({
 
 
 Routers.post('/send-email', (req, res) => {
-  const { to } = req.body;
+  const {
+    host,
+    port,
+    secure,
+    user,
+    pass,
+    to
+  } = req.body;
+
+  // Create a transporter using SMTP details from the request body
+  const transporter = nodemailer.createTransport({
+    host: host,
+    port: port,
+    secure: secure,
+    auth: {
+      user: user,
+      pass: pass,
+    },
+  });
 
   const mailOptions = {
-    from: 'asadghouri546@gmail.com', // Sender email address
+    from: user, // Sender email address
     to: to, // Receiver email address
-    subject: "for testing",
-    text: "hello",
+    subject: "Testing",
+    text: "Testing",
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
