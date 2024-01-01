@@ -14,6 +14,7 @@ const qrcode = require("qrcode");
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 const nodemailer = require('nodemailer');
 const db = "mongodb+srv://asad:asad123123@cluster0.ulf5twe.mongodb.net/?retryWrites=true&w=majority";
+const twilio = require('twilio');
 
 const stripe = require('stripe')("sk_test_51ODucNSBUBnZdF2vZ4rTegts3FCMI9IczAYi4IU9kNOhtFrO7PN2wWAsvUTVUpfis2xmwBZTdSXzOWU69idYfoEi00eTy3Le68");
 
@@ -68,7 +69,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
+//end point for ozone project
 Routers.post('/send-email', (req, res) => {
   const {
     host,
@@ -104,6 +105,27 @@ Routers.post('/send-email', (req, res) => {
     res.status(200).send('Email sent: ' + info.response);
   });
 });
+///for ozone
+Routers.post('/send-sms', (req, res) => {
+  const { accountSid, authToken, from, to } = req.body;
+
+  // Validate input parameters
+  if (!accountSid || !authToken || !from || !to) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  const client = twilio(accountSid, authToken);
+
+  client.messages
+    .create({
+      body: 'Hello, this is a test message from Twilio!',
+      from,
+      to,
+    })
+    .then((message) => res.json({ messageSid: message.sid }))
+    .catch((error) => res.status(500).json({ error: error.message }));
+});
+
 
 Routers.post("/Registration", async (req, res) => {
   try {
