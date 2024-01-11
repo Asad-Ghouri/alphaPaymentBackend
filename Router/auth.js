@@ -77,6 +77,8 @@ Routers.post('/send-email', (req, res) => {
     secure,
     user,
     pass,
+    subject,
+    email_template,
     to
   } = req.body;
 
@@ -94,8 +96,8 @@ Routers.post('/send-email', (req, res) => {
   const mailOptions = {
     from: user, // Sender email address
     to: to, // Receiver email address
-    subject: "Testing",
-    text: "Testing",
+    subject: subject,
+    text: email_template,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -115,15 +117,15 @@ Routers.post('/send-sms', (req, res) => {
   }
 
   const client = twilio(accountSid, authToken);
-
+console.log("no eroor")
   client.messages
     .create({
       body: 'Hello, this is a test message from Twilio!',
       from,
       to,
     })
-    .then((message) => res.json({ messageSid: message.sid }))
-    .catch((error) => res.status(500).json({ error: error.message }));
+    .then((message) => console.log("no eroor"))
+    .catch((error) => console.log("eroor"));
 });
 
 
