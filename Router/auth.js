@@ -18,7 +18,56 @@ const twilio = require('twilio');
 
 const stripe = require('stripe')("sk_test_51ODucNSBUBnZdF2vZ4rTegts3FCMI9IczAYi4IU9kNOhtFrO7PN2wWAsvUTVUpfis2xmwBZTdSXzOWU69idYfoEi00eTy3Le68");
 
-
+/**
+ * @swagger
+ * /stripe:
+ *   post:
+ *     summary: Create a Stripe checkout session
+ *     description: This endpoint creates a new Stripe checkout session for a subscription, requiring a price ID.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - priceId
+ *             properties:
+ *               priceId:
+ *                 type: string
+ *                 description: The ID of the price for the subscription.
+ *     responses:
+ *       200:
+ *         description: Successfully created a Stripe checkout session.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: The ID of the created Stripe session.
+ *       400:
+ *         description: Bad Request - Price ID not provided in the request body.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message explaining that the price ID was not provided.
+ *       500:
+ *         description: Internal Server Error - Error occurred while creating the checkout session.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message explaining the server error.
+ */
 Routers.post("/stripe", async (req, res) => {
   try {
       // Debug logging
@@ -70,6 +119,68 @@ const transporter = nodemailer.createTransport({
 });
 
 //end point for ozone project
+/**
+ * @swagger
+ * /send-email:
+ *   post:
+ *     summary: Send an email
+ *     description: This endpoint sends an email using SMTP details provided in the request body.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - host
+ *               - port
+ *               - secure
+ *               - user
+ *               - pass
+ *               - subject
+ *               - email_template
+ *               - to
+ *             properties:
+ *               host:
+ *                 type: string
+ *                 description: SMTP server host.
+ *               port:
+ *                 type: integer
+ *                 description: SMTP server port.
+ *               secure:
+ *                 type: boolean
+ *                 description: Whether the connection should use SSL/TLS.
+ *               user:
+ *                 type: string
+ *                 description: SMTP user email address.
+ *               pass:
+ *                 type: string
+ *                 description: SMTP password for the user.
+ *               subject:
+ *                 type: string
+ *                 description: Subject of the email.
+ *               email_template:
+ *                 type: string
+ *                 description: Content or template of the email.
+ *               to:
+ *                 type: string
+ *                 description: Receiver's email address.
+ *     responses:
+ *       200:
+ *         description: Email successfully sent.
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: "Email sent: [SMTP server response]"
+ *       500:
+ *         description: Error occurred while sending the email.
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: "Error message if unable to send email"
+ */
 Routers.post('/send-email', (req, res) => {
   const {
     host,
@@ -108,6 +219,52 @@ Routers.post('/send-email', (req, res) => {
   });
 });
 ///for ozone
+/**
+ * @swagger
+ * /send-sms:
+ *   post:
+ *     summary: Send an SMS
+ *     description: This endpoint sends an SMS using Twilio with the details provided in the request body.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - accountSid
+ *               - authToken
+ *               - from
+ *               - to
+ *             properties:
+ *               accountSid:
+ *                 type: string
+ *                 description: Twilio Account SID.
+ *               authToken:
+ *                 type: string
+ *                 description: Twilio Auth Token.
+ *               from:
+ *                 type: string
+ *                 description: The sending phone number (Twilio number).
+ *               to:
+ *                 type: string
+ *                 description: The receiving phone number.
+ *     responses:
+ *       200:
+ *         description: SMS successfully sent.
+ *       400:
+ *         description: Bad request due to missing required parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message indicating missing parameters.
+ *       500:
+ *         description: Internal Server Error - Error occurred while sending the SMS.
+ */
 Routers.post('/send-sms', (req, res) => {
   const { accountSid, authToken, from, to } = req.body;
 
@@ -128,7 +285,65 @@ console.log("no eroor")
     .catch((error) => console.log("eroor"));
 });
 
-
+/**
+ * @swagger
+ * /Registration:
+ *   post:
+ *     summary: User Registration
+ *     description: Registers a new user with name, email, and password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the user.
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email address of the user.
+ *               password:
+ *                 type: string
+ *                 description: Password for the user account.
+ *     responses:
+ *       201:
+ *         description: User registered successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User registered successfully"
+ *       422:
+ *         description: Unprocessable Entity - Error due to missing fields or existing email.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message indicating the reason for failure.
+ *       500:
+ *         description: Internal Server Error - Error occurred during the registration process.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
 Routers.post("/Registration", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -165,6 +380,67 @@ Routers.post("/Registration", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: User Login
+ *     description: Allows users to log in using their email and password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The user's email address.
+ *               password:
+ *                 type: string
+ *                 description: The user's password.
+ *     responses:
+ *       201:
+ *         description: User logged in successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User logged in successfully"
+ *                 userId:
+ *                   type: string
+ *                   description: The ID of the logged-in user.
+ *                 name:
+ *                   type: string
+ *                   description: The name of the logged-in user.
+ *       400:
+ *         description: Bad request due to missing fields or invalid credentials.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message indicating the reason for failure.
+ *       500:
+ *         description: Internal Server Error - Error occurred during the login process.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
 Routers.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -202,6 +478,56 @@ Routers.post("/login", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /generateApiKey/{userId}:
+ *   post:
+ *     summary: Generate API Key
+ *     description: Generates a new API key for the user specified by the userId in the path.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: API key generated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 apiKey:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       apiKey:
+ *                         type: string
+ *                         description: The newly generated API key.
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message indicating the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while generating the API key.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
 Routers.post(`/generateApiKey/:userId`, async (req, res) => {
   const userId = req.params.userId;
   try {
@@ -222,6 +548,47 @@ Routers.post(`/generateApiKey/:userId`, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /getUserdata/{id}:
+ *   get:
+ *     summary: Get User Data
+ *     description: Retrieves data for a user specified by the user ID in the path.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User data retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 name:
+ *                   type: string
+ *                   description: Name of the user.
+ *                 email:
+ *                   type: string
+ *                   description: Email address of the user.
+ *                 password:
+ *                   type: string
+ *                   description: Password of the user.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving user data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get(`/getUserdata/:id`, async (request, response) => {
   console.log("id is ", request.params.id);
   try {
@@ -235,6 +602,46 @@ Routers.get(`/getUserdata/:id`, async (request, response) => {
   }
 });
 
+/**
+ * @swagger
+ * /getUserdataPendingLinks/{id}:
+ *   get:
+ *     summary: Get User's Pending Payment Links
+ *     description: Retrieves all pending payment links for a user specified by the user ID in the path.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of pending payment links retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   linkId:
+ *                     type: string
+ *                     description: Unique identifier for the payment link.
+ *                   status:
+ *                     type: string
+ *                     description: Status of the payment link.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving pending payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get(`/getUserdataPendingLinks/:id`, async (request, response) => {
   try {
     const user = await User.findById(request.params.id);
@@ -255,6 +662,56 @@ Routers.get(`/getUserdataPendingLinks/:id`, async (request, response) => {
   }
 });
 
+/**
+ * @swagger
+ * /getUserdataDoneLinks/{id}:
+ *   get:
+ *     summary: Get User's Completed Payment Links
+ *     description: Retrieves all completed (done) payment links for a user specified by the user ID in the path.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of completed payment links retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   linkId:
+ *                     type: string
+ *                     description: Unique identifier for the payment link.
+ *                   status:
+ *                     type: string
+ *                     description: Status of the payment link (should be 'done').
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message indicating the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving completed payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get(`/getUserdataDoneLinks/:id`, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -280,7 +737,52 @@ Routers.get(`/getUserdataDoneLinks/:id`, async (req, res) => {
   }
 });
 
-
+/**
+ * @swagger
+ * /PaymentLinkGenerator/gett/{id}/{amd}:
+ *   get:
+ *     summary: Retrieve Specific Payment Link
+ *     description: Retrieves a specific payment link for a user based on the user ID and the unique payment link identifier.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: amd
+ *         required: true
+ *         description: Unique identifier of the payment link.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment link retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 paymentLinks:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       uniqueid:
+ *                         type: string
+ *                         description: Unique identifier for the payment link.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving the payment link.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get(`/PaymentLinkGenerator/gett/:id/:amd`, async (request, response) => {
   try {
     console.log(request.params.amd)
@@ -555,7 +1057,71 @@ web3.eth.getBalance(senderAddress)
 // }
 
                                    
-
+/**
+ * @swagger
+ * /changedetails/gett/{id}/{amd}/{address}/{amount}/{privateKey}/{bnbvalue}:
+ *   get:
+ *     summary: Change Payment Link Details
+ *     description: Updates payment link details and processes transactions based on user ID, unique payment link ID, and transaction details.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: amd
+ *         required: true
+ *         description: Unique identifier of the payment link.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: address
+ *         required: true
+ *         description: Blockchain address for the transaction.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: amount
+ *         required: true
+ *         description: Original amount to be processed.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: privateKey
+ *         required: true
+ *         description: Private key for transaction authentication.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: bnbvalue
+ *         required: true
+ *         description: Binance coin value for the transaction.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment link details updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Confirmation message for the update.
+ *       500:
+ *         description: Internal Server Error - Error occurred while updating payment link status.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/:bnbvalue', async (request, response) => {
   try {
     const userId = request.params.id;
@@ -609,6 +1175,76 @@ Routers.get('/changedetails/gett/:id/:amd/:address/:amount/:privateKey/:bnbvalue
 // const { QRCode } = qrcode;
 
 
+/**
+ * @swagger
+ * /GetDatabyApiKey:
+ *   get:
+ *     summary: Get Data by API Key
+ *     description: Retrieves data and generates a payment link based on the provided API key and other query parameters.
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         description: API key for user identification.
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: amount
+ *         required: false
+ *         description: Amount for the payment link.
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: currency
+ *         required: false
+ *         description: Currency for the payment link.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Data retrieved and payment link generated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   description: User object.
+ *                 paymentLink:
+ *                   type: object
+ *                   description: Generated payment link details.
+ *       400:
+ *         description: Bad Request - Missing API key.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message indicating the missing API key.
+ *       404:
+ *         description: User Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message indicating the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while processing the request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
 Routers.get('/GetDatabyApiKey', async (req, res) => {
   const apiKey = req.query.id;
   const amount = req.query.amount;
@@ -749,6 +1385,70 @@ if (!isMainThread) {
 }
 
 // Route for generating a payment link
+/**
+ * @swagger
+ * /generate-payment-link/{id}:
+ *   post:
+ *     summary: Generate Payment Link
+ *     description: Generates a new payment link for a user, including a QR code, based on the user ID and provided payment details.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - currency
+ *             properties:
+ *               amount:
+ *                 type: string
+ *                 description: Amount for the payment link.
+ *               currency:
+ *                 type: string
+ *                 description: Currency for the payment link.
+ *               note:
+ *                 type: string
+ *                 description: Optional note associated with the payment link.
+ *     responses:
+ *       200:
+ *         description: Payment link generated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   description: User object with the newly created payment link.
+ *       404:
+ *         description: User Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message indicating the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while generating the payment link.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.post(`/generate-payment-link/:id`, generatePaymentLink);
 
 // Routers.get("/v1/getpaymentid/:id", async (req, res) => {
@@ -773,6 +1473,50 @@ Routers.post(`/generate-payment-link/:id`, generatePaymentLink);
 // });
 
 
+/**
+ * @swagger
+ * /v1/getpaymentid/{id}:
+ *   get:
+ *     summary: Retrieve Payment Link IDs
+ *     description: Fetches all unique payment link IDs associated with a user specified by the user ID in the path.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Payment link IDs retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: string
+ *                 description: Unique payment link ID.
+ *       404:
+ *         description: User not found or no payment links available.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message indicating that the user was not found or no payment links are available.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving payment link IDs.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -791,6 +1535,54 @@ Routers.get("/v1/getpaymentid/:id", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /userCount/{id}:
+ *   get:
+ *     summary: Get User Counts
+ *     description: Retrieves the count of API keys and payment links associated with a specific user, identified by the user ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Counts of API keys and payment links for the user retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 apiKeyCount:
+ *                   type: integer
+ *                   description: Count of API keys associated with the user.
+ *                 paymentLinksCount:
+ *                   type: integer
+ *                   description: Count of payment links associated with the user.
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving user counts.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/userCount/:id', async (req, res) => {
   const userId = req.params.id;
 
@@ -840,6 +1632,64 @@ Routers.get('/userCount/:id', async (req, res) => {
 
 
 // -------admin dashboard------
+/**
+ * @swagger
+ * /Adminlogin:
+ *   post:
+ *     summary: Admin Login
+ *     description: Allows admin users to log in using their email and password.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The admin's email address.
+ *               password:
+ *                 type: string
+ *                 description: The admin's password.
+ *     responses:
+ *       201:
+ *         description: Admin user logged in successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "User logged in successfully"
+ *                 userId:
+ *                   type: string
+ *                   description: The ID of the logged-in admin user.
+ *       400:
+ *         description: Bad request due to missing fields or invalid credentials.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message indicating the reason for failure.
+ *       500:
+ *         description: Internal Server Error - Error occurred during the login process.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Detailed error message.
+ */
 Routers.post("/Adminlogin", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -866,6 +1716,34 @@ Routers.post("/Adminlogin", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /countUser:
+ *   get:
+ *     summary: Count Users
+ *     description: Retrieves the total count of users in the database.
+ *     responses:
+ *       200:
+ *         description: Total number of users successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalUsers:
+ *                   type: integer
+ *                   description: Total number of user documents in the database.
+ *       500:
+ *         description: Internal Server Error - Error occurred while counting users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/countUser', async (req, res) => {
   try {
     const userCount = await User.countDocuments();
@@ -877,6 +1755,34 @@ Routers.get('/countUser', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /CountpaymentLinks:
+ *   get:
+ *     summary: Count Payment Links
+ *     description: Retrieves the total count of payment links across all users in the database.
+ *     responses:
+ *       200:
+ *         description: Total number of payment links successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalPaymentLinks:
+ *                   type: integer
+ *                   description: Total number of payment links across all users.
+ *       500:
+ *         description: Internal Server Error - Error occurred while counting payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/CountpaymentLinks', async (req, res) => {
   try {
     const pipeline = [
@@ -902,6 +1808,34 @@ Routers.get('/CountpaymentLinks', async (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /PendingPaymentLinks:
+ *   get:
+ *     summary: Count Pending Payment Links
+ *     description: Retrieves the total count of pending payment links across all users in the database.
+ *     responses:
+ *       200:
+ *         description: Total number of pending payment links successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalPendingPaymentLinks:
+ *                   type: integer
+ *                   description: Total number of pending payment links across all users.
+ *       500:
+ *         description: Internal Server Error - Error occurred while counting pending payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/PendingPaymentLinks', async (req, res) => {
   try {
     const pipeline = [
@@ -935,6 +1869,40 @@ Routers.get('/PendingPaymentLinks', async (req, res) => {
 
 
 // Route to get the total payment links for each user
+/**
+ * @swagger
+ * /PendingPaymentLinksDetail:
+ *   get:
+ *     summary: Get Detailed Pending Payment Links
+ *     description: Retrieves detailed information about all pending payment links across all users in the database.
+ *     responses:
+ *       200:
+ *         description: Detailed pending payment links successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   pendingPaymentLinks:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         uniqueid:
+ *                           type: string
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving detailed pending payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
   try {
     const pipeline = [
@@ -969,6 +1937,34 @@ Routers.get('/PendingPaymentLinksDetail', async (req, res) => {
   }
 });
 // Route to get the total count of payment links with status "done" across all users
+/**
+ * @swagger
+ * /DonePaymentLinks:
+ *   get:
+ *     summary: Count Completed Payment Links
+ *     description: Retrieves the total count of completed (done) payment links across all users in the database.
+ *     responses:
+ *       200:
+ *         description: Total number of completed payment links successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalDonePaymentLinks:
+ *                   type: integer
+ *                   description: Total number of completed payment links across all users.
+ *       500:
+ *         description: Internal Server Error - Error occurred while counting completed payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/DonePaymentLinks', async (req, res) => {
   try {
     const pipeline = [
@@ -1001,6 +1997,40 @@ Routers.get('/DonePaymentLinks', async (req, res) => {
 });
 
 // Route to get the total payment links with status "done" for each user
+/**
+ * @swagger
+ * /DonePaymentLinksDetail:
+ *   get:
+ *     summary: Get Detailed Completed Payment Links
+ *     description: Retrieves detailed information about all completed (done) payment links across all users in the database.
+ *     responses:
+ *       200:
+ *         description: Detailed completed payment links successfully retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   donePaymentLinks:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         uniqueid:
+ *                           type: string
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving detailed completed payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/DonePaymentLinksDetail', async (req, res) => {
   try {
     const pipeline = [
@@ -1035,6 +2065,40 @@ Routers.get('/DonePaymentLinksDetail', async (req, res) => {
   }
 });
 
+
+/**
+ * @swagger
+ * /AllUsers:
+ *   get:
+ *     summary: Get All Users
+ *     description: Retrieves a list of all users in the database, projecting only their email and password fields.
+ *     responses:
+ *       200:
+ *         description: List of users retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   email:
+ *                     type: string
+ *                     description: Email of the user.
+ *                   password:
+ *                     type: string
+ *                     description: Password of the user (hashed or plain, based on your implementation).
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving users.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/AllUsers', async (req, res) => {
   try {
     const users = await User.find({}, 'email password'); // Project only email and password fields
@@ -1045,6 +2109,51 @@ Routers.get('/AllUsers', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /SpecificUser/{userId}:
+ *   get:
+ *     summary: Get Specific User
+ *     description: Retrieves details of a specific user identified by their user ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: Unique identifier of the user.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 email:
+ *                   type: string
+ *                   description: Email of the user.
+ *       404:
+ *         description: User Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating that the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while retrieving user details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.get('/SpecificUser/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1060,6 +2169,61 @@ Routers.get('/SpecificUser/:userId', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /EditUsers/{userId}:
+ *   put:
+ *     summary: Edit User Details
+ *     description: Updates the details of a specific user identified by their user ID. The updated data is provided in the request body.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: Unique identifier of the user to be updated.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: New email of the user.
+ *     responses:
+ *       200:
+ *         description: User details updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 email:
+ *                   type: string
+ *                   description: Updated email of the user.
+ *       404:
+ *         description: User Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating that the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while updating user details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.put('/EditUsers/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1083,6 +2247,64 @@ Routers.put('/EditUsers/:userId', async (req, res) => {
 });
 
 // Edit API key by user ID and API key ID
+/**
+ * @swagger
+ * /EditUsersApiKey/{userId}/{apiKeyId}:
+ *   put:
+ *     summary: Edit User's API Key
+ *     description: Updates a specific API key for a user, identified by the user ID and API key ID. The new API key data is provided in the request body.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: Unique identifier of the user whose API key is to be updated.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: apiKeyId
+ *         required: true
+ *         description: Unique identifier of the API key to be updated.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               apiKey:
+ *                 type: string
+ *                 description: New API key value.
+ *     responses:
+ *       200:
+ *         description: API key updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *       404:
+ *         description: User or API key Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating that the user or API key was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while updating the API key.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.put('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1109,6 +2331,64 @@ Routers.put('/EditUsersApiKey/:userId/:apiKeyId', async (req, res) => {
 });
 
 // Edit payment link by user ID and payment link ID
+/**
+ * @swagger
+ * /EditUsersPaymentLinks/{userId}/{paymentLinkId}:
+ *   put:
+ *     summary: Edit User's Payment Link
+ *     description: Updates a specific payment link for a user, identified by the user ID and payment link ID. The new payment link data is provided in the request body.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: Unique identifier of the user whose payment link is to be updated.
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: paymentLinkId
+ *         required: true
+ *         description: Unique identifier of the payment link to be updated.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               uniqueid:
+ *                 type: string
+ *                 description: New unique identifier for the payment link.
+ *     responses:
+ *       200:
+ *         description: Payment link updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *       404:
+ *         description: User or Payment Link Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating that the user or payment link was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while updating the payment link.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.put('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1134,6 +2414,51 @@ Routers.put('/EditUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) =>
 });
 
 
+/**
+ * @swagger
+ * /DeleteUser/{userId}:
+ *   delete:
+ *     summary: Delete User
+ *     description: Deletes a specific user identified by their user ID from the database.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: Unique identifier of the user to be deleted.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Confirmation message for the deletion.
+ *       404:
+ *         description: User Not Found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message indicating that the user was not found.
+ *       500:
+ *         description: Internal Server Error - Error occurred while deleting the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Error message detailing the server error.
+ */
 Routers.delete('/DeleteUser/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1153,6 +2478,54 @@ Routers.delete('/DeleteUser/:userId', async (req, res) => {
 });
 
 // Delete API key by user ID and API key ID
+/**
+ * @swagger
+ * /DeleteUserApiKey/{userId}/{apiKeyId}:
+ *   delete:
+ *     summary: Delete a user's API key by ID.
+ *     description: Deletes a specific API key associated with a user by their user ID and API key ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *       - in: path
+ *         name: apiKeyId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the API key to be deleted.
+ *     responses:
+ *       200:
+ *         description: API key deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: User or API key not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.delete('/DeleteUserApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1175,6 +2548,54 @@ Routers.delete('/DeleteUserApiKey/:userId/:apiKeyId', async (req, res) => {
 });
 
 // Delete payment link by user ID and payment link ID
+/**
+ * @swagger
+ * /DeleteUserPaymentLinks/{userId}/{paymentLinkId}:
+ *   delete:
+ *     summary: Delete a user's payment link by ID.
+ *     description: Deletes a specific payment link associated with a user by their user ID and payment link ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *       - in: path
+ *         name: paymentLinkId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the payment link to be deleted.
+ *     responses:
+ *       200:
+ *         description: Payment link deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: User or payment link not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.delete('/DeleteUserpaymentLinks/:userId/:paymentLinkId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -1197,6 +2618,42 @@ Routers.delete('/DeleteUserpaymentLinks/:userId/:paymentLinkId', async (req, res
 });
 
 // Endpoint to set the commission rate by admin
+/**
+ * @swagger
+ * /admin/commissionRate:
+ *   put:
+ *     summary: Update the commission rate for the admin.
+ *     description: Updates the commission rate for the admin.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               commissionRate:
+ *                 type: number
+ *                 description: The new commission rate to set for the admin.
+ *     responses:
+ *       200:
+ *         description: Commission rate updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.put('/admin/commissionRate', async (req, res) => {
   try {
     const { commissionRate } = req.body;
@@ -1212,6 +2669,43 @@ Routers.put('/admin/commissionRate', async (req, res) => {
 });
 
 // Endpoint to get the commission rate by admin
+/**
+ * @swagger
+ * /admin/getcommissionRate/{userId}:
+ *   get:
+ *     summary: Get the commission rate for the admin by user ID.
+ *     description: Retrieves the commission rate for the admin based on the provided user ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the admin user.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the admin's commission rate.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: The ID of the admin.
+ *                 commissionRate:
+ *                   type: number
+ *                   description: The commission rate for the admin.
+ *       500:
+ *         description: Server Error or admin not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
  const userId = req.params.userId;
     const admin = await Admin.findById(userId); 
@@ -1224,6 +2718,55 @@ Routers.get('/admin/getcommissionRate/:userId', async (req, res) => {
 });
 
 // Edit API key by user ID and API key ID
+/**
+ * @swagger
+ * /getUsersApiKey/{userId}/{apiKeyId}:
+ *   get:
+ *     summary: Get a user's API key by user ID and API key ID.
+ *     description: Retrieves a specific API key associated with a user by their user ID and API key ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *       - in: path
+ *         name: apiKeyId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the API key to be retrieved.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the user's API key.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: The ID of the API key.
+ *       404:
+ *         description: User not found or API key not found for the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.get('/getUsersApiKey/:userId/:apiKeyId', async (req, res) => {
   try {
     const { userId, apiKeyId } = req.params;
@@ -1252,6 +2795,55 @@ Routers.get('/getUsersApiKey/:userId/:apiKeyId', async (req, res) => {
 });
 
 // Edit payment link by user ID and payment link ID
+/**
+ * @swagger
+ * /getUsersPaymentLinks/{userId}/{paymentLinkId}:
+ *   get:
+ *     summary: Get a user's payment link by user ID and payment link ID.
+ *     description: Retrieves a specific payment link associated with a user by their user ID and payment link ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *       - in: path
+ *         name: paymentLinkId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the payment link to be retrieved.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the user's payment link.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: The ID of the payment link.
+ *       404:
+ *         description: User not found or payment link not found for the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.get('/getUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => {
   try {
     const { userId, paymentLinkId } = req.params;
@@ -1283,6 +2875,50 @@ Routers.get('/getUsersPaymentLinks/:userId/:paymentLinkId', async (req, res) => 
   }
 });
 
+
+/**
+ * @swagger
+ * /AdminInfo/{id}:
+ *   get:
+ *     summary: Get admin information by user ID.
+ *     description: Retrieves information about an admin user by their user ID.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the admin user.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the admin's information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: The ID of the admin user.
+ *       404:
+ *         description: Admin user not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.get("/AdminInfo/:id", async (req, res) => {
   try {
     const  userId = req.params.id;
@@ -1303,6 +2939,50 @@ Routers.get("/AdminInfo/:id", async (req, res) => {
 
  
 });
+
+/**
+ * @swagger
+ * /DonePayment/{userId}:
+ *   get:
+ *     summary: Get the total amount of payments marked as "done" by user ID.
+ *     description: Retrieves the total amount of payments marked as "done" associated with a user by their user ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the total amount of "done" payments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalDonePrice:
+ *                   type: number
+ *                   description: The total amount of payments marked as "done".
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 
 Routers.get('/DonePayment/:userId', async (req, res) => {
   try {
@@ -1330,6 +3010,49 @@ Routers.get('/DonePayment/:userId', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /PendingPayment/{userId}:
+ *   get:
+ *     summary: Get the total amount of pending payments by user ID.
+ *     description: Retrieves the total amount of pending payments associated with a user by their user ID.
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the total amount of pending payments.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalPendingPrice:
+ *                   type: number
+ *                   description: The total amount of pending payments.
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
 Routers.get('/PendingPayment/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -1356,6 +3079,39 @@ Routers.get('/PendingPayment/:userId', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /getEmail/{id}:
+ *   get:
+ *     summary: Send an email with a specific message.
+ *     description: Sends an email with a message to a predefined recipient.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The message ID to include in the email.
+ *     responses:
+ *       201:
+ *         description: Email sent successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 Routers.get("/getEmail/:id", async (req, res) => {
   try {
     const meassge = req.params.id;
@@ -1418,6 +3174,79 @@ async function generatePaymentLink_with_Order_ID(user, amount, currency, OrderId
 }
 
 // Endpoint for generating payment links
+/**
+ * @swagger
+ * /GetLinkbyApiKey:
+ *   post:
+ *     summary: Generate a payment link for a user using their API key.
+ *     description: Generates a payment link for a user based on their API key and provided query parameters.
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user's API key.
+ *       - in: query
+ *         name: amount
+ *         schema:
+ *           type: number
+ *         required: true
+ *         description: The payment amount.
+ *       - in: query
+ *         name: currency
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The currency of the payment.
+ *       - in: query
+ *         name: OrderId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The Order ID associated with the payment.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the generated payment link URL and unique ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 paymentLinkURL:
+ *                   type: string
+ *                   description: The URL of the generated payment link.
+ *                 id:
+ *                   type: string
+ *                   description: The unique ID of the generated payment link.
+ *       400:
+ *         description: Bad Request. Missing or invalid query parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 Routers.post('/GetLinkbyApiKey', async (req, res) => {
   const apiKey = req.query.id;
   const amount = req.query.amount;
@@ -1448,6 +3277,70 @@ Routers.post('/GetLinkbyApiKey', async (req, res) => {
 });
 
 // Endpoint for checking payment status
+/**
+ * @swagger
+ * /getStatus:
+ *   post:
+ *     summary: Get the payment status for an order using API key and order ID.
+ *     description: Retrieves the payment status for a specific order using the provided API key and order ID as query parameters.
+ *     parameters:
+ *       - in: query
+ *         name: apikey
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user's API key.
+ *       - in: query
+ *         name: orderId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The Order ID associated with the payment.
+ *     responses:
+ *       200:
+ *         description: Successful response containing the payment status.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 paymentStatus:
+ *                   type: string
+ *                   description: The payment status for the specified order.
+ *       400:
+ *         description: Bad Request. Missing or invalid query parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                 apiKey:
+ *                   type: string
+ *                   description: The provided API key in the query.
+ *                 orderId:
+ *                   type: string
+ *                   description: The provided Order ID in the query.
+ *       404:
+ *         description: User not found or Order ID not found in payment links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *       500:
+ *         description: Server Error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 Routers.post('/getStatus', async (req, res) => {
   const apiKey = req.query.apikey;
   const orderId = req.query.orderId;
