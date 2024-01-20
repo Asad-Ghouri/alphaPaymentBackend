@@ -9,6 +9,7 @@ const swaggerDefinition = require('./swaggerDef');
 
 require('./DB/connection');
 app.use(express.json());
+app.use(cors());
 
 const swaggerOptions = {
   swaggerDefinition,
@@ -19,7 +20,6 @@ const swaggerDocs = swaggerJSDoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 
-app.use(cors());
 app.use('/api', require('./Router/auth.js'));
 app.listen(process.env.PORT, () => {
   console.log(`Server is running at localhost:${process.env.PORT}`);
