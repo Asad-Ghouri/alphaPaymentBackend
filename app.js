@@ -7,11 +7,11 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 
 require('./DB/connection');
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {explorer: true}));
 app.use(express.json());
 app.use(cors());
 
 // Swagger setup
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 app.use('/api', require('./Router/auth.js'));
